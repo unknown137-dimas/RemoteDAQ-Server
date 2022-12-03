@@ -1,0 +1,29 @@
+version: '3'
+services:
+  influxdb:
+    image: influxdb
+    container_name: influxdb
+    restart: always
+    ports:
+      - 8086:8086
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - $PWD/config:/etc/influxdb2
+  mqtt:
+    image: emqx
+    container_name: emqx-mqtt
+    restart: always
+    environment:
+      EMQX_NAME: emqx_node
+      EMQX_HOST: 127.0.0.1
+    ports:
+      - 1883:1883
+    volumes:
+      - $PWD/emqx-data:/opt/emqx/data
+      - $PWD/emqx-log:/opt/emqx/log
+      - $PWD/emqx-etc:/opt/emqx/etc
+    
+
+volumes:
+  influxdb-data:
+    external: True
