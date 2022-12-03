@@ -14,16 +14,35 @@ services:
     container_name: emqx-mqtt
     restart: always
     environment:
-      EMQX_NAME: emqx_node
-      EMQX_HOST: 127.0.0.1
+      - EMQX_NAME=emqx_node
+      - EMQX_HOST=127.0.0.1
+      - EMQX_LOADED_PLUGINS=emqx_management,emqx_dashboard
     ports:
       - 1883:1883
+      - 18083:18083
     volumes:
-      - $PWD/emqx-data:/opt/emqx/data
-      - $PWD/emqx-log:/opt/emqx/log
-      - $PWD/emqx-etc:/opt/emqx/etc
+      - ./emqx-data:/opt/emqx/data
+      - ./emqx-etc:/opt/emqx/etc
+      - ./emqx-log:/opt/emqx/log
+  db:
+    image: mariadb
+    container_name: mariadb
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=Mar1aDB-pa$$worD
+    ports:
+      - 3306:3306
+    volumes:
+      - mariadb-data:/var/lib/mysql
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
     
 
 volumes:
   influxdb-data:
+    external: True
+  mariadb-data:
     external: True
