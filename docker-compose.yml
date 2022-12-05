@@ -8,24 +8,7 @@ services:
       - 8086:8086
     volumes:
       - influxdb-data:/var/lib/influxdb2
-  backend_server:
-    image: python:alpine
-    container_name: backend_server
-    networks:
-      - backend_network
-    ports:
-      - 80:80
-  backend_db:
-    image: mongo
-    container_name: backend_db
-    restart: always
-    networks:
-      - backend_network
-    volumes:
-      - mongodb-data:/data/db
 
 volumes:
   influxdb-data:
-    external: True
-  mongodb-data:
     external: True
