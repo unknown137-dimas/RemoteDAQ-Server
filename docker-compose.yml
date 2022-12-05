@@ -1,49 +1,31 @@
 version: '3'
 services:
-  influxdb:
+  data_db:
     image: influxdb
-    container_name: influxdb
+    container_name: data_db
     restart: always
     ports:
       - 8086:8086
     volumes:
       - influxdb-data:/var/lib/influxdb2
-      - $PWD/config:/etc/influxdb2
-  mqtt:
-    image: emqx
-    container_name: emqx-mqtt
-    restart: always
-    environment:
-      - EMQX_NAME=emqx_node
-      - EMQX_HOST=127.0.0.1
-      - EMQX_LOADED_PLUGINS=emqx_management,emqx_dashboard
+  backend_server:
+    image: python:alpine
+    container_name: backend_server
+    networks:
+      - backend_network
     ports:
-      - 1883:1883
-      - 18083:18083
+      - 80:80
+  backend_db:
+    image: mongo
+    container_name: backend_db
+    restart: always
+    networks:
+      - backend_network
     volumes:
-      - ./emqx-data:/opt/emqx/data
-      - ./emqx-etc:/opt/emqx/etc
-      - ./emqx-log:/opt/emqx/log
-  db:
-    image: mariadb
-    container_name: mariadb
-    restart: always
-    environment:
-      - MARIADB_ROOT_PASSWORD=Mar1aDB-pa$$worD
-    ports:
-      - 3306:3306
-    volumes:
-      - mariadb-data:/var/lib/mysql
-  adminer:
-    image: adminer
-    container_name: adminer
-    restart: always
-    ports:
-      - 8080:8080
-    
+      - mongodb-data:/data/db
 
 volumes:
   influxdb-data:
     external: True
-  mariadb-data:
+  mongodb-data:
     external: True
