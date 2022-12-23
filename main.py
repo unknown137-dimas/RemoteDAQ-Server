@@ -4,20 +4,57 @@ def main(page: ft.Page):
     page.title = 'RemoteDAQ Dashboard'
     theme = ft.Theme()
     theme.color_scheme_seed = 'green'
-    theme.page_transitions.windows = ft.PageTransitionTheme('cupertino')
-    page.theme_mode = ft.ThemeMode('light')
+    theme.page_transitions.windows = ft.PageTransitionTheme.CUPERTINO
+    page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
     
     nav = ['/', '/settings', '/about']
+
+    '''Result Table'''
+    result_table = ft.DataTable(
+        columns=[
+            ft.DataColumn(ft.Text("First name")),
+            ft.DataColumn(ft.Text("Last name")),
+            ft.DataColumn(ft.Text("Age"), numeric=True),
+        ],
+        rows=[
+            ft.DataRow(
+                cells=[
+                    ft.DataCell(ft.Text("John")),
+                    ft.DataCell(ft.Text("Smith")),
+                    ft.DataCell(ft.Text("43")),
+                ],
+            ),
+            ft.DataRow(
+                cells=[
+                    ft.DataCell(ft.Text("Jack")),
+                    ft.DataCell(ft.Text("Brown")),
+                    ft.DataCell(ft.Text("19")),
+                ],
+            ),
+            ft.DataRow(
+                cells=[
+                    ft.DataCell(ft.Text("Alice")),
+                    ft.DataCell(ft.Text("Wong")),
+                    ft.DataCell(ft.Text("25")),
+                ],
+            ),
+        ],
+    )
+
+    def checkbox_generator(n, obj):
+        for i in range(n):
+            obj.controls.append(ft.Checkbox(label='Pin ' + str(i)))
+
     '''IO Dropdown Function'''
     def io_dropdown_changed(_):
         print(io_dropdown.value)
         if io_dropdown.value == 'Input':
-            input_tab.visible = False
-            output_tab.visible = True
-        if io_dropdown.value == 'Output':
             input_tab.visible = True
             output_tab.visible = False
+        if io_dropdown.value == 'Output':
+            input_tab.visible = False
+            output_tab.visible = True
         page.update()
 
     '''IO Dropdown'''
@@ -31,6 +68,23 @@ def main(page: ft.Page):
         ]
     )
 
+    '''Columns'''
+    analog_input_column = ft.Column(
+        alignment = ft.MainAxisAlignment.SPACE_EVENLY
+    )
+    digital_input_column = ft.Column(
+        alignment = ft.MainAxisAlignment.SPACE_EVENLY
+    )
+    digital_output_input_column = ft.Column(
+        alignment = ft.MainAxisAlignment.SPACE_EVENLY
+    )
+    analog_output_column = ft.Column(
+        alignment = ft.MainAxisAlignment.SPACE_EVENLY
+    )
+    digital_output_column = ft.Column(
+        alignment = ft.MainAxisAlignment.SPACE_EVENLY
+    )
+
     '''Input Tab'''
     input_tab = ft.Tabs(
         selected_index=0,
@@ -38,22 +92,36 @@ def main(page: ft.Page):
         tabs=[
             ft.Tab(
                 text='Analog',
-                icon=ft.icons.WAVES,
                 content=ft.Card(
                     content=ft.Container(
-                        content=ft.Text('This is Tab 1'),
+                        content=analog_input_column,
+                                # ft.FilledButton(text="Get Analog Input"),
                         alignment=ft.alignment.center,
                     ),
+                    elevation=3
                 ),
             ),
             ft.Tab(
                 text='Digital',
-                content=ft.Text('This is Tab 2'),
+                content=ft.Card(
+                    content=ft.Container(
+                        content=digital_input_column,
+                                # ft.FilledButton(text="Get Analog Input"),
+                        alignment=ft.alignment.center,
+                    ),
+                    elevation=3
+                ),
             ),
             ft.Tab(
                 text='Digital Output',
-                icon=ft.icons.ONE_K,
-                content=ft.Text('This is Tab 3'),
+                content=ft.Card(
+                    content=ft.Container(
+                        content=digital_output_input_column,
+                                # ft.FilledButton(text="Get Analog Input"),
+                        alignment=ft.alignment.center,
+                    ),
+                    elevation=3
+                ),
             ),
         ],
         expand=1,
@@ -66,18 +134,60 @@ def main(page: ft.Page):
         tabs=[
             ft.Tab(
                 text='Analog',
-                icon=ft.icons.WAVES,
+                content=ft.Card(
+                    content=ft.Container(
+                        content=analog_input_column,
+                                # ft.FilledButton(text="Get Analog Input"),
+                        alignment=ft.alignment.center,
+                    ),
+                    elevation=3
+                ),
+            ),
+            ft.Tab(
+                text='Digital',
+                content=ft.Card(
+                    content=ft.Container(
+                        content=digital_output_column,
+                                # ft.FilledButton(text="Get Analog Input"),
+                        alignment=ft.alignment.center,
+                    ),
+                    elevation=3
+                ),
+            ),
+        ],
+        expand=1,
+    )
+
+    '''Settings Tab'''
+    settings_tab = ft.Tabs(
+        selected_index=0,
+        animation_duration=300,
+        tabs=[
+            ft.Tab(
+                text='General',
+                icon=ft.icons.SETTINGS,
                 content=ft.Container(
                     content=ft.Text('This is Tab 1'), alignment=ft.alignment.center
                 ),
             ),
             ft.Tab(
-                text='Digital',
-                content=ft.Text('This is Tab 2'),
+                text='Network',
+                icon=ft.icons.CABLE,
+                content=ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.TextField(label='Network ID', hint_text='Network ID')
+                            ]
+                        )
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                ),
             ),
         ],
         expand=1,
     )
+
 
     '''Navigation Menu'''
     rail = ft.NavigationRail(
@@ -145,7 +255,8 @@ def main(page: ft.Page):
                             [
                                 rail,
                                 ft.VerticalDivider(width=1),
-                                ft.Column([ ft.Text('HAI Settings!')], alignment=ft.MainAxisAlignment.START, expand=True),
+                                settings_tab
+                                # ft.Column([ ft.Text('HAI Settings!')], alignment=ft.MainAxisAlignment.START, expand=True),
                             ],
                             expand=True,
                         ),
@@ -179,9 +290,11 @@ def main(page: ft.Page):
 
     page.on_route_change = route_change
     page.on_view_pop = view_pop
-    page.add(
-        ft.Text('Test')
-    )
+    checkbox_generator(8, analog_input_column)
+    checkbox_generator(8, digital_input_column)
+    checkbox_generator(8, digital_output_input_column)
+    checkbox_generator(8, analog_output_column)
+    checkbox_generator(8, digital_output_column)
     page.go(page.route)
 
 ft.app(target=main, view=ft.WEB_BROWSER)
