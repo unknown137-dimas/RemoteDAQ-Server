@@ -5,7 +5,6 @@ import asyncio
 
 def main(page: ft.Page):
     '''Init'''
-    # loop = asyncio.get_event_loop
     theme = ft.Theme()
     theme.color_scheme_seed = 'green'
     theme.page_transitions.windows = ft.PageTransitionTheme.CUPERTINO
@@ -16,35 +15,28 @@ def main(page: ft.Page):
     nav = ['/', '/settings', '/about']
     card_elevation = 2
 
+    '''Alert Dialog'''
+    def dialog(text):
+        page.dialog = ft.AlertDialog(title=ft.Text(text))
+        page.dialog.open = True
+
     '''Result Table'''
-    result_table = ft.DataTable(
+    ai_result_table = ft.DataTable(
         columns=[
-            ft.DataColumn(ft.Text("First name")),
-            ft.DataColumn(ft.Text("Last name")),
-            ft.DataColumn(ft.Text("Age"), numeric=True),
+            ft.DataColumn(ft.Text("Pin")),
+            ft.DataColumn(ft.Text("Value")),
         ],
-        rows=[
-            ft.DataRow(
-                cells=[
-                    ft.DataCell(ft.Text("John")),
-                    ft.DataCell(ft.Text("Smith")),
-                    ft.DataCell(ft.Text("43")),
-                ],
-            ),
-            ft.DataRow(
-                cells=[
-                    ft.DataCell(ft.Text("Jack")),
-                    ft.DataCell(ft.Text("Brown")),
-                    ft.DataCell(ft.Text("19")),
-                ],
-            ),
-            ft.DataRow(
-                cells=[
-                    ft.DataCell(ft.Text("Alice")),
-                    ft.DataCell(ft.Text("Wong")),
-                    ft.DataCell(ft.Text("25")),
-                ],
-            ),
+    )
+    di_result_table = ft.DataTable(
+        columns=[
+            ft.DataColumn(ft.Text("Pin")),
+            ft.DataColumn(ft.Text("Value")),
+        ],
+    )
+    doi_result_table = ft.DataTable(
+        columns=[
+            ft.DataColumn(ft.Text("Pin")),
+            ft.DataColumn(ft.Text("Value")),
         ],
     )
 
@@ -77,8 +69,23 @@ def main(page: ft.Page):
             output_tab.visible = True
         page.update()
 
+    '''Parse Data Function'''
+    def parse_data(input, pins_list, output):
+        output.rows.clear()
+        for res in pins_list:
+            row = input['data'][res]
+            output.rows.append(
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text(row['port'])),
+                        ft.DataCell(ft.Text(row['data']))
+                    ]
+                )
+            )
+        return 'Success'
+
     '''AI Button Function'''
-    async def ai_button_clicked(_):
+    def ai_button_clicked(_):
         selected_pins = [pin.data for pin in [
                 ai_pin_0,
                 ai_pin_1,
@@ -91,18 +98,17 @@ def main(page: ft.Page):
             ] if pin.value
         ]
         if selected_pins:
-            print('end', 'Getting analog data for pin ' + str(selected_pins) + '...\n')
+            print('Getting analog data for pin ' + str(selected_pins) + '...')
             url = 'http://localhost:8000/analog/input'
-            result = await asyncio.gather(api_request(url))
-            result = result[0]
+            result = asyncio.run(api_request(url))
             output = ''
             if result['success'] == True:
-                output = ''.join([str(result['data'][res]) + '\n' for res in selected_pins])
+                output = parse_data(result, selected_pins, ai_result_table)
             else:
-                output = result['data'] + '\n'
+                output = result['data'][0]
         else:
-            output = 'Please select one or more pin...\n'
-        print(output)
+            output = 'Please select one or more pin...'
+        dialog(output)
         page.update()
 
     '''DI Button Function'''
@@ -118,7 +124,18 @@ def main(page: ft.Page):
                 di_pin_7,
             ] if pin.value
         ]
-        print(selected_pins)
+        if selected_pins:
+            print('Getting digital data for pin ' + str(selected_pins) + '...')
+            url = 'http://localhost:8000/digital/input'
+            result = asyncio.run(api_request(url))
+            output = ''
+            if result['success'] == True:
+                output = parse_data(result, selected_pins, di_result_table)
+            else:
+                output = result['data'][0]
+        else:
+            output = 'Please select one or more pin...'
+        dialog(output)
         page.update()
 
     '''DOI Button Function'''
@@ -134,7 +151,18 @@ def main(page: ft.Page):
                 doi_pin_7,
             ] if pin.value
         ]
-        print(selected_pins)
+        if selected_pins:
+            print('Getting digital output data for pin ' + str(selected_pins) + '...')
+            url = 'http://localhost:8000/digital_output/input'
+            result = asyncio.run(api_request(url))
+            output = ''
+            if result['success'] == True:
+                output = parse_data(result, selected_pins, doi_result_table)
+            else:
+                output = result['data'][0]
+        else:
+            output = 'Please select one or more pin...'
+        dialog(output)
         page.update()
 
     '''AO Button Function'''
@@ -144,7 +172,10 @@ def main(page: ft.Page):
                 ao_pin_1,
             ]
         ]
-        print(pin_values)
+        print('Setting analog data...')
+        url = 'http://localhost:8000/analog/output'
+        result = asyncio.run(api_request(url, pin_values))
+        print(result['data'])
         page.update()
     
     '''DO Button Function'''
@@ -160,19 +191,22 @@ def main(page: ft.Page):
                 do_pin_7,
             ]
         ]
-        print(pin_values)
+        print('Setting digital data...')
+        url = 'http://localhost:8000/digital/output'
+        result = asyncio.run(api_request(url, pin_values))
+        print(result['data'])
         page.update()
 
     '''Check AO Value'''
     def check_ao_value(e):
         value = e.control.value
-        if value and float(value) > 10:
+        if value and float(value) > 5:
             e.control.border_color = ft.colors.RED
             e.control.helper_text = 'Invalid value'
             e.control.prefix_icon = ft.icons.ERROR_OUTLINE
         else:
             e.control.border_color = ft.colors.PRIMARY
-            e.control.helper_text = 'Valid range is 0 - 10 Volt'
+            e.control.helper_text = 'Valid range is 0 - 5 Volt'
             e.control.prefix_icon = ''
         page.update()
 
@@ -222,13 +256,13 @@ def main(page: ft.Page):
         label='AO Pin 0',
         suffix_text='Volt',
         on_change=check_ao_value,
-        helper_text='Valid range is 0 - 10 Volt'
+        helper_text='Valid range is 0 - 5 Volt'
         )
     ao_pin_1 = ft.TextField(
         label='AO Pin 1',
         suffix_text='Volt',
         on_change=check_ao_value,
-        helper_text='Valid range is 0 - 10 Volt'
+        helper_text='Valid range is 0 - 5 Volt'
         )
     
     '''Digital Output Pins'''
@@ -270,6 +304,7 @@ def main(page: ft.Page):
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_EVENLY,
                             ),
+                            ai_result_table,
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
                     ),
@@ -279,28 +314,31 @@ def main(page: ft.Page):
             ft.Tab(
                 text='Digital',
                 content=ft.Card(
-                    content=ft.Container(
-                        content=ft.Column(
-                            [
-                                di_pin_0,
-                                di_pin_1,
-                                di_pin_2,
-                                di_pin_3,
-                                di_pin_4,
-                                di_pin_5,
-                                di_pin_6,
-                                di_pin_7,
-                                ft.ElevatedButton(
-                                    text='Get Digital Data',
-                                    on_click=di_button_clicked,
-                                    style=ft.ButtonStyle(
-                                        bgcolor=ft.colors.SECONDARY_CONTAINER
-                                    )
-                                ),
-                            ],
-                            alignment = ft.MainAxisAlignment.SPACE_EVENLY
-                        ),
-                        alignment=ft.alignment.center,
+                    content=ft.Row(
+                        [
+                            ft.Column(
+                                [
+                                    di_pin_0,
+                                    di_pin_1,
+                                    di_pin_2,
+                                    di_pin_3,
+                                    di_pin_4,
+                                    di_pin_5,
+                                    di_pin_6,
+                                    di_pin_7,
+                                    ft.ElevatedButton(
+                                        text='Get Digital Data',
+                                        on_click=di_button_clicked,
+                                        style=ft.ButtonStyle(
+                                            bgcolor=ft.colors.SECONDARY_CONTAINER
+                                        )
+                                    ),
+                                ],
+                                alignment = ft.MainAxisAlignment.SPACE_EVENLY
+                            ),
+                            di_result_table
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     elevation=card_elevation
                 ),
@@ -308,28 +346,31 @@ def main(page: ft.Page):
             ft.Tab(
                 text='Digital Output',
                 content=ft.Card(
-                    content=ft.Container(
-                        content=ft.Column(
-                            [
-                                doi_pin_0,
-                                doi_pin_1,
-                                doi_pin_2,
-                                doi_pin_3,
-                                doi_pin_4,
-                                doi_pin_5,
-                                doi_pin_6,
-                                doi_pin_7,
-                                ft.ElevatedButton(
-                                    text='Get Digital Output Data',
-                                    on_click=doi_button_clicked,
-                                    style=ft.ButtonStyle(
-                                        bgcolor=ft.colors.SECONDARY_CONTAINER
-                                    )
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_EVENLY
-                        ),
-                        alignment=ft.alignment.center,
+                    content=ft.Row(
+                        [
+                            ft.Column(
+                                [
+                                    doi_pin_0,
+                                    doi_pin_1,
+                                    doi_pin_2,
+                                    doi_pin_3,
+                                    doi_pin_4,
+                                    doi_pin_5,
+                                    doi_pin_6,
+                                    doi_pin_7,
+                                    ft.ElevatedButton(
+                                        text='Get Digital Output Data',
+                                        on_click=doi_button_clicked,
+                                        style=ft.ButtonStyle(
+                                            bgcolor=ft.colors.SECONDARY_CONTAINER
+                                        )
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_EVENLY
+                            ),
+                            doi_result_table
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     elevation=card_elevation
                 ),
