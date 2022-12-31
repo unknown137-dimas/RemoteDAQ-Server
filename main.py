@@ -197,7 +197,7 @@ def main(page: ft.Page):
         print(result['data'])
         page.update()
 
-    '''Check AO Value'''
+    '''Check AO Value Function'''
     def check_ao_value(e):
         value = e.control.value
         if value and float(value) > 5:
@@ -497,7 +497,7 @@ def main(page: ft.Page):
         on_change=lambda e: page.go(nav[e.control.selected_index]),
     )    
 
-    '''Page View Route'''
+    '''Page View Route Function'''
     def route_change(route):
         page.views.clear()
         '''/ Route'''
@@ -559,7 +559,7 @@ def main(page: ft.Page):
             )
         page.update()
 
-    '''Remove Page View'''
+    '''Remove Page View Function'''
     def view_pop(view):
         page.views.pop()
         top_view = page.views[-1]
