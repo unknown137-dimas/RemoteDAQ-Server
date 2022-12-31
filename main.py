@@ -14,6 +14,7 @@ def main(page: ft.Page):
     
     nav = ['/', '/settings', '/about']
     card_elevation = 2
+    container_padding = 15
 
     '''Alert Dialog'''
     def dialog(text):
@@ -23,20 +24,21 @@ def main(page: ft.Page):
     '''Result Table'''
     ai_result_table = ft.DataTable(
         columns=[
-            ft.DataColumn(ft.Text("Pin")),
-            ft.DataColumn(ft.Text("Value")),
+            ft.DataColumn(ft.Text('Pin')),
+            ft.DataColumn(ft.Text('Value')),
         ],
     )
+
     di_result_table = ft.DataTable(
         columns=[
-            ft.DataColumn(ft.Text("Pin")),
-            ft.DataColumn(ft.Text("Value")),
+            ft.DataColumn(ft.Text('Pin')),
+            ft.DataColumn(ft.Text('Value')),
         ],
     )
     doi_result_table = ft.DataTable(
         columns=[
-            ft.DataColumn(ft.Text("Pin")),
-            ft.DataColumn(ft.Text("Value")),
+            ft.DataColumn(ft.Text('Pin')),
+            ft.DataColumn(ft.Text('Value')),
         ],
     )
 
@@ -57,17 +59,6 @@ def main(page: ft.Page):
                         return await response.json()
         except aiohttp.ClientConnectorError:
             return {'success':False, 'data':['Connection refused, check device connection']}
-
-    '''IO Dropdown Function'''
-    def io_dropdown_changed(_):
-        print(io_dropdown.value)
-        if io_dropdown.value == 'Input':
-            input_tab.visible = True
-            output_tab.visible = False
-        if io_dropdown.value == 'Output':
-            input_tab.visible = False
-            output_tab.visible = True
-        page.update()
 
     '''Parse Data Function'''
     def parse_data(input, pins_list, output):
@@ -210,17 +201,6 @@ def main(page: ft.Page):
             e.control.prefix_icon = ''
         page.update()
 
-    '''IO Dropdown'''
-    io_dropdown = ft.Dropdown(
-        hint_text='Input/Output',
-        on_change=io_dropdown_changed,
-        width=200,
-        options=[
-        ft.dropdown.Option('Input'),
-        ft.dropdown.Option('Output'),
-        ]
-    )
-
     '''Analog Input Pins'''
     ai_pin_0 = ft.Checkbox(label='AI Pin 0', data=0)
     ai_pin_1 = ft.Checkbox(label='AI Pin 1', data=1)
@@ -275,168 +255,200 @@ def main(page: ft.Page):
     do_pin_6 = ft.Switch(label='DO Pin 6', data=1)
     do_pin_7 = ft.Switch(label='DO Pin 7', data=1)
 
-    '''Input Tab'''
-    input_tab = ft.Tabs(
-        animation_duration=300,
-        tabs=[
-            ft.Tab(
-                text='Analog',
-                content=ft.Card(
-                    content=ft.Row(
+    '''Input Row'''
+    input_row = ft.ResponsiveRow(
+        [
+            ft.Card(
+                ft.Container(
+                    ft.Column(
                         [
-                            ft.Column(
+                            ft.Text('Analog Input', weight=ft.FontWeight.BOLD),
+                            ft.Row(
                                 [
-                                    ai_pin_0,
-                                    ai_pin_1,
-                                    ai_pin_2,
-                                    ai_pin_3,
-                                    ai_pin_4,
-                                    ai_pin_5,
-                                    ai_pin_6,
-                                    ai_pin_7,
-                                    ft.ElevatedButton(
-                                        text='Get Analog Data',
-                                        on_click=ai_button_clicked,
-                                        style=ft.ButtonStyle(
-                                            bgcolor=ft.colors.SECONDARY_CONTAINER
-                                        )
+                                    ft.Column(
+                                        [
+                                            ai_pin_0,
+                                            ai_pin_1,
+                                            ai_pin_2,
+                                            ai_pin_3,
+                                            ai_pin_4,
+                                            ai_pin_5,
+                                            ai_pin_6,
+                                            ai_pin_7,
+                                        ]
                                     ),
+                                    ai_result_table,
                                 ],
-                                alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                vertical_alignment=ft.CrossAxisAlignment.START,
                             ),
-                            ai_result_table,
+                            ft.ElevatedButton(
+                                text='Get Analog Data',
+                                on_click=ai_button_clicked,
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
+                            ),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=15
                     ),
-                    elevation=card_elevation,
+                    padding=container_padding,
                 ),
+                elevation=card_elevation,
+                col={'md': 4},
             ),
-            ft.Tab(
-                text='Digital',
-                content=ft.Card(
-                    content=ft.Row(
+            ft.Card(
+                ft.Container(
+                    ft.Column(
                         [
-                            ft.Column(
+                            ft.Text('Digital Input', weight=ft.FontWeight.BOLD),
+                            ft.Row(
                                 [
-                                    di_pin_0,
-                                    di_pin_1,
-                                    di_pin_2,
-                                    di_pin_3,
-                                    di_pin_4,
-                                    di_pin_5,
-                                    di_pin_6,
-                                    di_pin_7,
-                                    ft.ElevatedButton(
-                                        text='Get Digital Data',
-                                        on_click=di_button_clicked,
-                                        style=ft.ButtonStyle(
-                                            bgcolor=ft.colors.SECONDARY_CONTAINER
-                                        )
+                                    ft.Column(
+                                        [
+                                            di_pin_0,
+                                            di_pin_1,
+                                            di_pin_2,
+                                            di_pin_3,
+                                            di_pin_4,
+                                            di_pin_5,
+                                            di_pin_6,
+                                            di_pin_7,
+                                        ]
                                     ),
+                                    di_result_table,
                                 ],
-                                alignment = ft.MainAxisAlignment.SPACE_EVENLY
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                vertical_alignment=ft.CrossAxisAlignment.START,
                             ),
-                            di_result_table
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                    ),
-                    elevation=card_elevation
-                ),
-            ),
-            ft.Tab(
-                text='Digital Output',
-                content=ft.Card(
-                    content=ft.Row(
-                        [
-                            ft.Column(
-                                [
-                                    doi_pin_0,
-                                    doi_pin_1,
-                                    doi_pin_2,
-                                    doi_pin_3,
-                                    doi_pin_4,
-                                    doi_pin_5,
-                                    doi_pin_6,
-                                    doi_pin_7,
-                                    ft.ElevatedButton(
-                                        text='Get Digital Output Data',
-                                        on_click=doi_button_clicked,
-                                        style=ft.ButtonStyle(
-                                            bgcolor=ft.colors.SECONDARY_CONTAINER
-                                        )
-                                    ),
-                                ],
-                                alignment=ft.MainAxisAlignment.SPACE_EVENLY
+                            ft.ElevatedButton(
+                                text='Get Digital Data',
+                                on_click=di_button_clicked,
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
                             ),
-                            doi_result_table
                         ],
-                        alignment=ft.MainAxisAlignment.CENTER,
+                        alignment = ft.MainAxisAlignment.SPACE_EVENLY,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
-                    elevation=card_elevation
+                    padding=container_padding,
                 ),
+                elevation=card_elevation,
+                col={'md': 4},
             ),
-        ],
-        expand=1,
+            ft.Card(
+                ft.Container(
+                        ft.Column(
+                            [
+                                ft.Text('"Digital Output" Input', weight=ft.FontWeight.BOLD),
+                                ft.Row(
+                                    [
+                                        ft.Column(
+                                            [
+                                                doi_pin_0,
+                                                doi_pin_1,
+                                                doi_pin_2,
+                                                doi_pin_3,
+                                                doi_pin_4,
+                                                doi_pin_5,
+                                                doi_pin_6,
+                                                doi_pin_7,
+                                            ]
+                                        ),
+                                        doi_result_table,
+                                    ],
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                    vertical_alignment=ft.CrossAxisAlignment.START,
+                                ),
+                                ft.ElevatedButton(
+                                    text='Get Digital Output Data',
+                                    on_click=doi_button_clicked,
+                                    style=ft.ButtonStyle(
+                                        bgcolor=ft.colors.SECONDARY_CONTAINER
+                                    )
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        ),
+                        padding=container_padding,
+                ),
+                elevation=card_elevation,
+                col={'md': 4},
+            ),
+        ]
     )
 
-    '''Output Tab'''
-    output_tab = ft.Tabs(
-        animation_duration=300,
-        tabs=[
-            ft.Tab(
-                text='Analog',
-                content=ft.Card(
-                    content=ft.Container(
-                        content=ft.Column(
-                            [
-                                ao_pin_0,
-                                ao_pin_1,
-                                ft.ElevatedButton(
-                                    text='Set Analog Data',
-                                    on_click=ao_button_clicked,
-                                    style=ft.ButtonStyle(
-                                        bgcolor=ft.colors.SECONDARY_CONTAINER
-                                    )
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_EVENLY
-                        ),
-                        alignment=ft.alignment.center,
+    '''Output Row'''
+    output_row = ft.ResponsiveRow(
+        [
+            ft.Card(
+                ft.Container(
+                    ft.Column(
+                        [
+                            ft.Text('Analog Output', weight=ft.FontWeight.BOLD),
+                            ao_pin_0,
+                            ao_pin_1,
+                            ft.ElevatedButton(
+                                text='Set Analog Data',
+                                on_click=ao_button_clicked,
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
+                            ),
+                        ],
+                        # alignment=ft.MainAxisAlignment.CENTER,
+                        # horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
-                    elevation=card_elevation
+                    padding=container_padding,
                 ),
+                elevation=card_elevation,
+                col={'md': 4},
             ),
-            ft.Tab(
-                text='Digital',
-                content=ft.Card(
-                    content=ft.Container(
-                        content=ft.Column(
-                            [
-                                do_pin_0,
-                                do_pin_1,
-                                do_pin_2,
-                                do_pin_3,
-                                do_pin_4,
-                                do_pin_5,
-                                do_pin_6,
-                                do_pin_7,
-                                ft.ElevatedButton(
-                                    text='Set Digital Data',
-                                    on_click=do_button_clicked,
-                                    style=ft.ButtonStyle(
-                                        bgcolor=ft.colors.SECONDARY_CONTAINER
-                                    )
+            ft.Card(
+                ft.Container(
+                    ft.Column(
+                        [
+                            ft.Text('Digital Output', weight=ft.FontWeight.BOLD),
+                            ft.Row(
+                                    [
+                                        ft.Column(
+                                            [
+                                                do_pin_0,
+                                                do_pin_1,
+                                                do_pin_2,
+                                                do_pin_3,
+                                                do_pin_4,
+                                                do_pin_5,
+                                                do_pin_6,
+                                                do_pin_7,
+                                            ]
+                                        ),
+                                        # do_result_table,
+                                    ],
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                    vertical_alignment=ft.CrossAxisAlignment.START,
                                 ),
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_EVENLY
-                        ),
-                        alignment=ft.alignment.center,
+                            ft.ElevatedButton(
+                                text='Set Digital Data',
+                                on_click=do_button_clicked,
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
-                    elevation=card_elevation
+                    padding=container_padding,
                 ),
+                elevation=card_elevation,
+                col={'md': 4},
             ),
-        ],
-        expand=1,
+        ]
     )
 
     '''Settings Tab'''
@@ -511,9 +523,8 @@ def main(page: ft.Page):
                             ft.VerticalDivider(width=1),
                             ft.Column(
                                 [
-                                    # io_dropdown,
-                                    input_tab,
-                                    output_tab,
+                                    input_row,
+                                    output_row
                                 ],
                                 expand=True
                             ),
