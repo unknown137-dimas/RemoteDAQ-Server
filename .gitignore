@@ -1,3 +1,4 @@
 *.code-workspace
 .*-venv/*
 examples/*
+settings.json
