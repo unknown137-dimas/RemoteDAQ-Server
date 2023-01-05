@@ -2,6 +2,22 @@ import flet as ft
 import aiohttp
 import json
 import asyncio
+from os.path import exists
+
+'''API Requests Function'''
+async def api_request(url, payload=None, headers={}):
+    headers['Content-Type'] = 'application/json'
+    try:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            if payload:
+                data = json.dumps({'data' : payload})
+                async with session.put(url, data=data) as response:
+                    return await response.json()
+            else:
+                async with session.get(url) as response:
+                    return await response.json()
+    except aiohttp.ClientConnectorError:
+        return {'success':False, 'data':['Connection refused, check connection']}
 
 def main(page: ft.Page):
     '''Init'''
@@ -23,10 +39,20 @@ def main(page: ft.Page):
 
     '''Result Table'''
     ai_result_table = ft.DataTable(
+        border=ft.border.all(3),
+        vertical_lines=ft.border.BorderSide(1, 'black'),
         columns=[
             ft.DataColumn(ft.Text('Pin')),
-            ft.DataColumn(ft.Text('Value')),
+            ft.DataColumn(ft.Text('Value'), numeric=True),
         ],
+        rows=[
+            ft.DataRow(
+                [
+                    ft.DataCell(ft.Text('0')),
+                    ft.DataCell(ft.Text('')),
+                ]
+            ),
+        ]
     )
 
     di_result_table = ft.DataTable(
@@ -42,23 +68,21 @@ def main(page: ft.Page):
         ],
     )
 
-    '''Requests Function'''
-    async def api_request(url, data=None):
-        headers = {}
-        body = {}
-        if data:
-            headers = {'Content-Type': 'application/json'}
-            body = json.dumps({'data' : data})
-        try:
-            async with aiohttp.ClientSession(headers=headers) as session:
-                if data:
-                    async with session.put(url, data=body) as response:
-                        return await response.json()
-                else:
-                    async with session.get(url) as response:
-                        return await response.json()
-        except aiohttp.ClientConnectorError:
-            return {'success':False, 'data':['Connection refused, check device connection']}
+    '''Text Field'''
+    zt_token = ft.TextField(label='ZeroTier Token')
+    zt_net_id = ft.TextField(label='Network ID')
+
+    '''Node Dropdown'''
+    node_dropdown = ft.Dropdown(
+        width=200,
+    )
+    '''Get Node List Function'''
+    def get_node_list():
+        print('Updating node list...')
+        url = 'https://api.zerotier.com/api/v1/network/' + str(zt_net_id.value) + '/member'
+        headers = {'Authorization' : 'Bearer ' + str(zt_token.value)}
+        result = asyncio.run(api_request(url, headers=headers))
+        return [r['config']['ipAssignments'][0] for r in result]
 
     '''Parse Data Function'''
     def parse_data(input, pins_list, output):
@@ -74,6 +98,24 @@ def main(page: ft.Page):
                 )
             )
         return 'Success'
+
+    '''Load Settings Function'''
+    def load_settings_file():
+        if exists('settings.json'):
+            with open('settings.json', 'r') as settings_file:
+                if settings_file:
+                    settings = json.loads(settings_file.readline())
+                    zt_token.value = settings['zt_token']
+                    zt_net_id.value = settings['zt_net_id']
+    load_settings_file()
+
+    '''Save Button Function'''
+    def save_button_clicked(_):
+        settings = {}
+        settings['zt_token'] = zt_token.value
+        settings['zt_net_id'] = zt_net_id.value
+        with open('settings.json', 'w') as setings_file:
+                setings_file.write(json.dumps(settings))
 
     '''AI Button Function'''
     def ai_button_clicked(_):
@@ -92,7 +134,6 @@ def main(page: ft.Page):
             print('Getting analog data for pin ' + str(selected_pins) + '...')
             url = 'http://localhost:8000/analog/input'
             result = asyncio.run(api_request(url))
-            output = ''
             if result['success'] == True:
                 output = parse_data(result, selected_pins, ai_result_table)
             else:
@@ -119,7 +160,6 @@ def main(page: ft.Page):
             print('Getting digital data for pin ' + str(selected_pins) + '...')
             url = 'http://localhost:8000/digital/input'
             result = asyncio.run(api_request(url))
-            output = ''
             if result['success'] == True:
                 output = parse_data(result, selected_pins, di_result_table)
             else:
@@ -146,7 +186,6 @@ def main(page: ft.Page):
             print('Getting digital output data for pin ' + str(selected_pins) + '...')
             url = 'http://localhost:8000/digital_output/input'
             result = asyncio.run(api_request(url))
-            output = ''
             if result['success'] == True:
                 output = parse_data(result, selected_pins, doi_result_table)
             else:
@@ -165,8 +204,12 @@ def main(page: ft.Page):
         ]
         print('Setting analog data...')
         url = 'http://localhost:8000/analog/output'
-        result = asyncio.run(api_request(url, pin_values))
-        print(result['data'])
+        result = asyncio.run(api_request(url, payload=pin_values))
+        if result['success'] == True:
+            output = 'Success'
+        else:
+            output = result['data'][0]
+        dialog(output)
         page.update()
     
     '''DO Button Function'''
@@ -184,8 +227,12 @@ def main(page: ft.Page):
         ]
         print('Setting digital data...')
         url = 'http://localhost:8000/digital/output'
-        result = asyncio.run(api_request(url, pin_values))
-        print(result['data'])
+        result = asyncio.run(api_request(url, payload=pin_values))
+        if result['success'] == True:
+            output = 'Success'
+        else:
+            output = result['data'][0]
+        dialog(output)
         page.update()
 
     '''Check AO Value Function'''
@@ -255,6 +302,9 @@ def main(page: ft.Page):
     do_pin_6 = ft.Switch(label='DO Pin 6', data=1)
     do_pin_7 = ft.Switch(label='DO Pin 7', data=1)
 
+    for node in get_node_list():
+        node_dropdown.options.append(ft.dropdown.Option(node))
+
     '''Input Row'''
     input_row = ft.ResponsiveRow(
         [
@@ -277,22 +327,27 @@ def main(page: ft.Page):
                                             ai_pin_7,
                                         ]
                                     ),
-                                    ai_result_table,
+                                    ft.VerticalDivider(),
+                                    ft.Column(
+                                        [
+                                            ai_result_table,
+                                            ft.ElevatedButton(
+                                                text='Get Analog Data',
+                                                on_click=ai_button_clicked,
+                                                style=ft.ButtonStyle(
+                                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                                )
+                                            ),
+                                        ],
+                                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                    )
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
                                 vertical_alignment=ft.CrossAxisAlignment.START,
                             ),
-                            ft.ElevatedButton(
-                                text='Get Analog Data',
-                                on_click=ai_button_clicked,
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
-                            ),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                        spacing=15
                     ),
                     padding=container_padding,
                 ),
@@ -318,20 +373,26 @@ def main(page: ft.Page):
                                             di_pin_7,
                                         ]
                                     ),
-                                    di_result_table,
+                                    ft.VerticalDivider(),
+                                    ft.Column(
+                                        [
+                                            di_result_table,
+                                            ft.ElevatedButton(
+                                                text='Get Digital Data',
+                                                on_click=di_button_clicked,
+                                                style=ft.ButtonStyle(
+                                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                                )
+                                            ),
+                                        ],
+                                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                    )
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
                                 vertical_alignment=ft.CrossAxisAlignment.START,
                             ),
-                            ft.ElevatedButton(
-                                text='Get Digital Data',
-                                on_click=di_button_clicked,
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
-                            ),
                         ],
-                        alignment = ft.MainAxisAlignment.SPACE_EVENLY,
+                        alignment = ft.MainAxisAlignment.CENTER,
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
                     padding=container_padding,
@@ -358,20 +419,26 @@ def main(page: ft.Page):
                                                 doi_pin_7,
                                             ]
                                         ),
-                                        doi_result_table,
+                                        ft.VerticalDivider(),
+                                        ft.Column(
+                                            [
+                                                doi_result_table,
+                                                ft.ElevatedButton(
+                                                    text='Get Digital Output Data',
+                                                    on_click=doi_button_clicked,
+                                                    style=ft.ButtonStyle(
+                                                        bgcolor=ft.colors.SECONDARY_CONTAINER
+                                                    )
+                                                ),
+                                            ],
+                                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                        )
                                     ],
                                     alignment=ft.MainAxisAlignment.CENTER,
                                     vertical_alignment=ft.CrossAxisAlignment.START,
                                 ),
-                                ft.ElevatedButton(
-                                    text='Get Digital Output Data',
-                                    on_click=doi_button_clicked,
-                                    style=ft.ButtonStyle(
-                                        bgcolor=ft.colors.SECONDARY_CONTAINER
-                                    )
-                                ),
                             ],
-                            alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                            alignment=ft.MainAxisAlignment.CENTER,
                             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                         ),
                         padding=container_padding,
@@ -379,7 +446,8 @@ def main(page: ft.Page):
                 elevation=card_elevation,
                 col={'md': 4},
             ),
-        ]
+        ],
+        vertical_alignment=ft.CrossAxisAlignment.START
     )
 
     '''Output Row'''
@@ -414,33 +482,39 @@ def main(page: ft.Page):
                         [
                             ft.Text('Digital Output', weight=ft.FontWeight.BOLD),
                             ft.Row(
-                                    [
-                                        ft.Column(
-                                            [
-                                                do_pin_0,
-                                                do_pin_1,
-                                                do_pin_2,
-                                                do_pin_3,
-                                                do_pin_4,
-                                                do_pin_5,
-                                                do_pin_6,
-                                                do_pin_7,
-                                            ]
-                                        ),
-                                        # do_result_table,
-                                    ],
-                                    alignment=ft.MainAxisAlignment.CENTER,
-                                    vertical_alignment=ft.CrossAxisAlignment.START,
-                                ),
-                            ft.ElevatedButton(
-                                text='Set Digital Data',
-                                on_click=do_button_clicked,
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
+                                [
+                                    ft.Column(
+                                        [
+                                            do_pin_0,
+                                            do_pin_1,
+                                            do_pin_2,
+                                            do_pin_3,
+                                            do_pin_4,
+                                            do_pin_5,
+                                            do_pin_6,
+                                            do_pin_7,
+                                        ]
+                                    ),
+                                    ft.VerticalDivider(),
+                                    ft.Column(
+                                        [
+                                            # do_result_table,
+                                            ft.ElevatedButton(
+                                                text='Set Digital Data',
+                                                on_click=do_button_clicked,
+                                                style=ft.ButtonStyle(
+                                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                                )
+                                            ),
+                                        ],
+                                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                    )
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                vertical_alignment=ft.CrossAxisAlignment.START,
                             ),
                         ],
-                        alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                        alignment=ft.MainAxisAlignment.CENTER,
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
                     padding=container_padding,
@@ -448,7 +522,8 @@ def main(page: ft.Page):
                 elevation=card_elevation,
                 col={'md': 4},
             ),
-        ]
+        ],
+        vertical_alignment=ft.CrossAxisAlignment.START
     )
 
     '''Settings Tab'''
@@ -468,13 +543,17 @@ def main(page: ft.Page):
                 icon=ft.icons.CABLE,
                 content=ft.Column(
                     [
-                        ft.Row(
-                            [
-                                ft.TextField(label='Network ID'),
-                            ]
+                        ft.Container(
+                            ft.Column(
+                                [
+                                    zt_token,
+                                    zt_net_id,
+                                ],
+                            ),
+                            padding=container_padding,
                         )
                     ],
-                    alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                    alignment=ft.MainAxisAlignment.START,
                 ),
             ),
         ],
@@ -523,6 +602,7 @@ def main(page: ft.Page):
                             ft.VerticalDivider(width=1),
                             ft.Column(
                                 [
+                                    node_dropdown,
                                     input_row,
                                     output_row
                                 ],
@@ -544,7 +624,11 @@ def main(page: ft.Page):
                             [
                                 rail,
                                 ft.VerticalDivider(width=1),
-                                settings_tab
+                                settings_tab,
+                                ft.ElevatedButton(
+                                    'Save',
+                                    on_click=save_button_clicked
+                                )
                             ],
                             expand=True,
                         ),
@@ -580,4 +664,5 @@ def main(page: ft.Page):
     page.on_view_pop = view_pop
     page.go(page.route)
 
-ft.app(target=main, view=ft.WEB_BROWSER)
+if __name__ == '__main__':
+    ft.app(target=main, view=ft.WEB_BROWSER, port=2023)
