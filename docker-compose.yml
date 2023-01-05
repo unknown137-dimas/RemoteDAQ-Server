@@ -1,5 +1,13 @@
 version: '3'
 services:
+  ui:
+    image: remotedaq_app
+    container_name: remotedaq_app
+    restart: always
+    ports:
+      - 2023
+    volumes:
+      - ./main.py:main.py:ro
   data_db:
     image: influxdb
     container_name: data_db
