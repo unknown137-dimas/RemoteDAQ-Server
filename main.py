@@ -74,6 +74,7 @@ def main(page: ft.Page):
 
     '''Node Dropdown'''
     node_dropdown = ft.Dropdown(
+        label='RemoteDAQ Node',
         width=200,
     )
     '''Get Node List Function'''
@@ -313,37 +314,20 @@ def main(page: ft.Page):
                     ft.Column(
                         [
                             ft.Text('Analog Input', weight=ft.FontWeight.BOLD),
-                            ft.Row(
-                                [
-                                    ft.Column(
-                                        [
-                                            ai_pin_0,
-                                            ai_pin_1,
-                                            ai_pin_2,
-                                            ai_pin_3,
-                                            ai_pin_4,
-                                            ai_pin_5,
-                                            ai_pin_6,
-                                            ai_pin_7,
-                                        ]
-                                    ),
-                                    ft.VerticalDivider(),
-                                    ft.Column(
-                                        [
-                                            ai_result_table,
-                                            ft.ElevatedButton(
-                                                text='Get Analog Data',
-                                                on_click=ai_button_clicked,
-                                                style=ft.ButtonStyle(
-                                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                                )
-                                            ),
-                                        ],
-                                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                                    )
-                                ],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                vertical_alignment=ft.CrossAxisAlignment.START,
+                            ai_pin_0,
+                            ai_pin_1,
+                            ai_pin_2,
+                            ai_pin_3,
+                            ai_pin_4,
+                            ai_pin_5,
+                            ai_pin_6,
+                            ai_pin_7,
+                            ft.ElevatedButton(
+                                text='Get Analog Data',
+                                on_click=ai_button_clicked,
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
                             ),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
@@ -352,44 +336,27 @@ def main(page: ft.Page):
                     padding=container_padding,
                 ),
                 elevation=card_elevation,
-                col={'md': 4},
+                col={'sm': 3, 'md': 4, 'xl': 3},
             ),
             ft.Card(
                 ft.Container(
                     ft.Column(
                         [
                             ft.Text('Digital Input', weight=ft.FontWeight.BOLD),
-                            ft.Row(
-                                [
-                                    ft.Column(
-                                        [
-                                            di_pin_0,
-                                            di_pin_1,
-                                            di_pin_2,
-                                            di_pin_3,
-                                            di_pin_4,
-                                            di_pin_5,
-                                            di_pin_6,
-                                            di_pin_7,
-                                        ]
-                                    ),
-                                    ft.VerticalDivider(),
-                                    ft.Column(
-                                        [
-                                            di_result_table,
-                                            ft.ElevatedButton(
-                                                text='Get Digital Data',
-                                                on_click=di_button_clicked,
-                                                style=ft.ButtonStyle(
-                                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                                )
-                                            ),
-                                        ],
-                                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                                    )
-                                ],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                vertical_alignment=ft.CrossAxisAlignment.START,
+                            di_pin_0,
+                            di_pin_1,
+                            di_pin_2,
+                            di_pin_3,
+                            di_pin_4,
+                            di_pin_5,
+                            di_pin_6,
+                            di_pin_7,
+                            ft.ElevatedButton(
+                                text='Get Digital Data',
+                                on_click=di_button_clicked,
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
                             ),
                         ],
                         alignment = ft.MainAxisAlignment.CENTER,
@@ -398,44 +365,27 @@ def main(page: ft.Page):
                     padding=container_padding,
                 ),
                 elevation=card_elevation,
-                col={'md': 4},
+                col={'sm': 3, 'md': 4, 'xl': 3},
             ),
             ft.Card(
                 ft.Container(
                         ft.Column(
                             [
                                 ft.Text('"Digital Output" Input', weight=ft.FontWeight.BOLD),
-                                ft.Row(
-                                    [
-                                        ft.Column(
-                                            [
-                                                doi_pin_0,
-                                                doi_pin_1,
-                                                doi_pin_2,
-                                                doi_pin_3,
-                                                doi_pin_4,
-                                                doi_pin_5,
-                                                doi_pin_6,
-                                                doi_pin_7,
-                                            ]
-                                        ),
-                                        ft.VerticalDivider(),
-                                        ft.Column(
-                                            [
-                                                doi_result_table,
-                                                ft.ElevatedButton(
-                                                    text='Get Digital Output Data',
-                                                    on_click=doi_button_clicked,
-                                                    style=ft.ButtonStyle(
-                                                        bgcolor=ft.colors.SECONDARY_CONTAINER
-                                                    )
-                                                ),
-                                            ],
-                                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                                        )
-                                    ],
-                                    alignment=ft.MainAxisAlignment.CENTER,
-                                    vertical_alignment=ft.CrossAxisAlignment.START,
+                                doi_pin_0,
+                                doi_pin_1,
+                                doi_pin_2,
+                                doi_pin_3,
+                                doi_pin_4,
+                                doi_pin_5,
+                                doi_pin_6,
+                                doi_pin_7,
+                                ft.ElevatedButton(
+                                    text='Get Digital Output Data',
+                                    on_click=doi_button_clicked,
+                                    style=ft.ButtonStyle(
+                                        bgcolor=ft.colors.SECONDARY_CONTAINER
+                                    )
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
@@ -444,10 +394,11 @@ def main(page: ft.Page):
                         padding=container_padding,
                 ),
                 elevation=card_elevation,
-                col={'md': 4},
+                col={'sm': 3, 'md': 4, 'xl': 3},
             ),
         ],
-        vertical_alignment=ft.CrossAxisAlignment.START
+        alignment=ft.MainAxisAlignment.CENTER,
+        vertical_alignment=ft.CrossAxisAlignment.START,
     )
 
     '''Output Row'''
@@ -468,50 +419,33 @@ def main(page: ft.Page):
                                 )
                             ),
                         ],
-                        # alignment=ft.MainAxisAlignment.CENTER,
-                        # horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
                     padding=container_padding,
                 ),
                 elevation=card_elevation,
-                col={'md': 4},
+                col={'sm': 3, 'md': 4, 'xl': 3},
             ),
             ft.Card(
                 ft.Container(
                     ft.Column(
                         [
                             ft.Text('Digital Output', weight=ft.FontWeight.BOLD),
-                            ft.Row(
-                                [
-                                    ft.Column(
-                                        [
-                                            do_pin_0,
-                                            do_pin_1,
-                                            do_pin_2,
-                                            do_pin_3,
-                                            do_pin_4,
-                                            do_pin_5,
-                                            do_pin_6,
-                                            do_pin_7,
-                                        ]
-                                    ),
-                                    ft.VerticalDivider(),
-                                    ft.Column(
-                                        [
-                                            # do_result_table,
-                                            ft.ElevatedButton(
-                                                text='Set Digital Data',
-                                                on_click=do_button_clicked,
-                                                style=ft.ButtonStyle(
-                                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                                )
-                                            ),
-                                        ],
-                                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                                    )
-                                ],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                vertical_alignment=ft.CrossAxisAlignment.START,
+                            do_pin_0,
+                            do_pin_1,
+                            do_pin_2,
+                            do_pin_3,
+                            do_pin_4,
+                            do_pin_5,
+                            do_pin_6,
+                            do_pin_7,
+                            ft.ElevatedButton(
+                                text='Set Digital Data',
+                                on_click=do_button_clicked,
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
                             ),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
@@ -520,10 +454,11 @@ def main(page: ft.Page):
                     padding=container_padding,
                 ),
                 elevation=card_elevation,
-                col={'md': 4},
+                col={'sm': 3, 'md': 4, 'xl': 3},
             ),
         ],
-        vertical_alignment=ft.CrossAxisAlignment.START
+        alignment=ft.MainAxisAlignment.CENTER,
+        vertical_alignment=ft.CrossAxisAlignment.START,
     )
 
     '''Settings Tab'''
@@ -603,8 +538,24 @@ def main(page: ft.Page):
                             ft.Column(
                                 [
                                     node_dropdown,
-                                    input_row,
-                                    output_row
+                                    ft.Tabs(
+                                        selected_index=0,
+                                        animation_duration=300,
+                                        tabs=[
+                                            ft.Tab(
+                                                text='Input',
+                                                content=ft.Container(
+                                                    input_row
+                                                ),
+                                            ),
+                                            ft.Tab(
+                                                text='Output',
+                                                content=ft.Container(
+                                                    output_row
+                                                ),
+                                            ),
+                                        ],
+                                    )
                                 ],
                                 expand=True
                             ),
