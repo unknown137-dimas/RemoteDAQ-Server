@@ -37,36 +37,35 @@ def main(page: ft.Page):
         page.dialog = ft.AlertDialog(title=ft.Text(text))
         page.dialog.open = True
 
-    '''Result Table'''
-    ai_result_table = ft.DataTable(
-        border=ft.border.all(3),
-        vertical_lines=ft.border.BorderSide(1, 'black'),
-        columns=[
-            ft.DataColumn(ft.Text('Pin')),
-            ft.DataColumn(ft.Text('Value'), numeric=True),
-        ],
-        rows=[
-            ft.DataRow(
-                [
-                    ft.DataCell(ft.Text('0')),
-                    ft.DataCell(ft.Text('')),
-                ]
-            ),
-        ]
-    )
+    '''Result Table Checkbox Function'''
+    def cell_selected(e):
+        e.control.selected = not e.control.selected
+        page.update()
 
-    di_result_table = ft.DataTable(
-        columns=[
-            ft.DataColumn(ft.Text('Pin')),
-            ft.DataColumn(ft.Text('Value')),
-        ],
-    )
-    doi_result_table = ft.DataTable(
-        columns=[
-            ft.DataColumn(ft.Text('Pin')),
-            ft.DataColumn(ft.Text('Value')),
-        ],
-    )
+    '''Result Table Class'''
+    class table(ft.DataTable):
+        def __init__(self):
+            super().__init__(
+                border=ft.border.all(1, ft.colors.SECONDARY),
+                border_radius=10,
+                vertical_lines=ft.border.BorderSide(1, ft.colors.SECONDARY),
+                show_checkbox_column=True,
+                columns=[
+                    ft.DataColumn(ft.Text('Pin')),
+                    ft.DataColumn(ft.Text('Value'), numeric=True),
+                ],
+                rows=[
+                    ft.DataRow(
+                        [ft.DataCell(ft.Text(str(i))), ft.DataCell(ft.Text(''))],
+                        on_select_changed=cell_selected,
+                    ) for i in range(0,8)
+                ]
+            )
+
+    '''Result Table Instance'''
+    ai_result_table =  table()
+    di_result_table = table()
+    doi_result_table = table()
 
     '''Text Field'''
     zt_token = ft.TextField(label='ZeroTier Token')
@@ -86,18 +85,12 @@ def main(page: ft.Page):
         return [r['config']['ipAssignments'][0] for r in result]
 
     '''Parse Data Function'''
-    def parse_data(input, pins_list, output):
-        output.rows.clear()
-        for res in pins_list:
-            row = input['data'][res]
-            output.rows.append(
-                ft.DataRow(
-                    cells=[
-                        ft.DataCell(ft.Text(row['port'])),
-                        ft.DataCell(ft.Text(row['data']))
-                    ]
-                )
-            )
+    def parse_data(api_response, selected_pins, output_table):
+        for row in output_table.rows:
+            for sel_pin in selected_pins:
+                if row.cells[0].content.value == sel_pin:
+                    pin = api_response['data'][sel_pin]
+                    row.cells[1].content.value = pin['data']
         return 'Success'
 
     '''Load Settings Function'''
@@ -120,80 +113,47 @@ def main(page: ft.Page):
 
     '''AI Button Function'''
     def ai_button_clicked(_):
-        selected_pins = [pin.data for pin in [
-                ai_pin_0,
-                ai_pin_1,
-                ai_pin_2,
-                ai_pin_3,
-                ai_pin_4,
-                ai_pin_5,
-                ai_pin_6,
-                ai_pin_7,
-            ] if pin.value
-        ]
+        selected_pins = [row.cells[0].content.value for row in ai_result_table.rows if row.selected]
         if selected_pins:
             print('Getting analog data for pin ' + str(selected_pins) + '...')
             url = 'http://localhost:8000/analog/input'
             result = asyncio.run(api_request(url))
             if result['success'] == True:
-                output = parse_data(result, selected_pins, ai_result_table)
+                parse_data(result, selected_pins, ai_result_table)
             else:
-                output = result['data'][0]
+                dialog(result['data'][0])
         else:
-            output = 'Please select one or more pin...'
-        dialog(output)
+            dialog('Please select one or more pin...')
         page.update()
 
     '''DI Button Function'''
     def di_button_clicked(_):
-        selected_pins = [pin.data for pin in [
-                di_pin_0,
-                di_pin_1,
-                di_pin_2,
-                di_pin_3,
-                di_pin_4,
-                di_pin_5,
-                di_pin_6,
-                di_pin_7,
-            ] if pin.value
-        ]
+        selected_pins = [row.cells[0].content.value for row in di_result_table.rows if row.selected]
         if selected_pins:
             print('Getting digital data for pin ' + str(selected_pins) + '...')
             url = 'http://localhost:8000/digital/input'
             result = asyncio.run(api_request(url))
             if result['success'] == True:
-                output = parse_data(result, selected_pins, di_result_table)
+                parse_data(result, selected_pins, di_result_table)
             else:
-                output = result['data'][0]
+                dialog(result['data'][0])
         else:
-            output = 'Please select one or more pin...'
-        dialog(output)
+            dialog('Please select one or more pin...')
         page.update()
 
     '''DOI Button Function'''
     def doi_button_clicked(_):
-        selected_pins = [pin.data for pin in [
-                doi_pin_0,
-                doi_pin_1,
-                doi_pin_2,
-                doi_pin_3,
-                doi_pin_4,
-                doi_pin_5,
-                doi_pin_6,
-                doi_pin_7,
-            ] if pin.value
-        ]
+        selected_pins = [row.cells[0].content.value for row in doi_result_table.rows if row.selected]
         if selected_pins:
             print('Getting digital output data for pin ' + str(selected_pins) + '...')
             url = 'http://localhost:8000/digital_output/input'
             result = asyncio.run(api_request(url))
             if result['success'] == True:
-                output = parse_data(result, selected_pins, doi_result_table)
+                parse_data(result, selected_pins, doi_result_table)
             else:
-                output = result['data'][0]
+                dialog(result['data'][0])
         else:
-            output = 'Please select one or more pin...'
-        dialog(output)
+            dialog('Please select one or more pin...')
         page.update()
 
     '''AO Button Function'''
@@ -314,14 +274,7 @@ def main(page: ft.Page):
                     ft.Column(
                         [
                             ft.Text('Analog Input', weight=ft.FontWeight.BOLD),
-                            ai_pin_0,
-                            ai_pin_1,
-                            ai_pin_2,
-                            ai_pin_3,
-                            ai_pin_4,
-                            ai_pin_5,
-                            ai_pin_6,
-                            ai_pin_7,
+                            ai_result_table,
                             ft.ElevatedButton(
                                 text='Get Analog Data',
                                 on_click=ai_button_clicked,
@@ -343,14 +296,7 @@ def main(page: ft.Page):
                     ft.Column(
                         [
                             ft.Text('Digital Input', weight=ft.FontWeight.BOLD),
-                            di_pin_0,
-                            di_pin_1,
-                            di_pin_2,
-                            di_pin_3,
-                            di_pin_4,
-                            di_pin_5,
-                            di_pin_6,
-                            di_pin_7,
+                            di_result_table,
                             ft.ElevatedButton(
                                 text='Get Digital Data',
                                 on_click=di_button_clicked,
@@ -372,14 +318,7 @@ def main(page: ft.Page):
                         ft.Column(
                             [
                                 ft.Text('"Digital Output" Input', weight=ft.FontWeight.BOLD),
-                                doi_pin_0,
-                                doi_pin_1,
-                                doi_pin_2,
-                                doi_pin_3,
-                                doi_pin_4,
-                                doi_pin_5,
-                                doi_pin_6,
-                                doi_pin_7,
+                                doi_result_table,
                                 ft.ElevatedButton(
                                     text='Get Digital Output Data',
                                     on_click=doi_button_clicked,
