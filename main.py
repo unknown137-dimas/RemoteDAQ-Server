@@ -27,7 +27,6 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
-    
     nav = ['/', '/settings', '/about']
     card_elevation = 2
     container_padding = 15
@@ -434,6 +433,25 @@ def main(page: ft.Page):
         expand=1,
     )
 
+    '''AppBar Menu'''
+    appbar = ft.AppBar(
+        leading=ft.IconButton(ft.icons.HOME, on_click=lambda e: page.go('/')),
+        leading_width=40,
+        title=ft.Text("RemoteDAQ Dashboard"),
+        center_title=False,
+        bgcolor=ft.colors.SURFACE_VARIANT,
+        elevation=card_elevation,
+        actions=[
+            # ft.IconButton(ft.icons.HOME),
+            ft.IconButton(ft.icons.SETTINGS, on_click=lambda e: page.go('/settings')),
+        ],
+    )
+
+    '''Floating Action Button'''
+    fab = ft.FloatingActionButton(
+        icon=ft.icons.ADD
+    )
+
     '''Navigation Menu'''
     rail = ft.NavigationRail(
         label_type=ft.NavigationRailLabelType.ALL,
@@ -464,6 +482,7 @@ def main(page: ft.Page):
 
     '''Page View Route Function'''
     def route_change(route):
+        rail.selected_index = nav.index(str(page.route))
         page.views.clear()
         '''/ Route'''
         page.views.append(
