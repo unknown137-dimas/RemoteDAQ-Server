@@ -75,13 +75,18 @@ def main(page: ft.Page):
         label='RemoteDAQ Node',
         width=200,
     )
+
     '''Get Node List Function'''
     def get_node_list():
         print('Updating node list...')
         url = 'https://api.zerotier.com/api/v1/network/' + str(zt_net_id.value) + '/member'
         headers = {'Authorization' : 'Bearer ' + str(zt_token.value)}
-        result = asyncio.run(api_request(url, headers=headers))
-        return [r['config']['ipAssignments'][0] for r in result]
+        try:
+            result = asyncio.run(api_request(url, headers=headers))
+            result = [r['config']['ipAssignments'][0] for r in result]
+        except TypeError:
+            result = ['localhost']
+        return result
 
     '''Parse Data Function'''
     def parse_data(api_response, selected_pins, output_table):
@@ -572,6 +577,7 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     page.go(page.route)
+    # print(node_dropdown.value)
 
 if __name__ == '__main__':
     ft.app(target=main, view=ft.WEB_BROWSER, port=2023)
