@@ -3,6 +3,7 @@ services:
   ui:
     image: remotedaq_app
     container_name: remotedaq_app
+    build: .
     restart: always
     ports:
       - 2023
