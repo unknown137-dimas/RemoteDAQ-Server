@@ -117,68 +117,85 @@ def main(page: ft.Page):
 
     '''AI Button Function'''
     def ai_button_clicked(_):
+        selected_node = node_dropdown.value
         selected_pins = [row.cells[0].content.value for row in ai_result_table.rows if row.selected]
-        if selected_pins:
-            print('Getting analog data for pin ' + str(selected_pins) + '...')
-            url = 'http://localhost:8000/analog/input'
-            result = asyncio.run(api_request(url))
-            if result['success'] == True:
-                parse_data(result, selected_pins, ai_result_table)
+        if selected_node:
+            if selected_pins:
+                print('Getting analog data for pin ' + str(selected_pins) + '...')
+                url = 'http://' + selected_node + ':8000/analog/input'
+                result = asyncio.run(api_request(url))
+                if result['success'] == True:
+                    parse_data(result, selected_pins, ai_result_table)
+                else:
+                    dialog(result['data'][0])
             else:
-                dialog(result['data'][0])
+                dialog('Please select one or more pin...')
         else:
-            dialog('Please select one or more pin...')
+            dialog('Please select destination remoteDAQ node...')
         page.update()
 
     '''DI Button Function'''
     def di_button_clicked(_):
+        selected_node = node_dropdown.value
         selected_pins = [row.cells[0].content.value for row in di_result_table.rows if row.selected]
-        if selected_pins:
-            print('Getting digital data for pin ' + str(selected_pins) + '...')
-            url = 'http://localhost:8000/digital/input'
-            result = asyncio.run(api_request(url))
-            if result['success'] == True:
-                parse_data(result, selected_pins, di_result_table)
+        if selected_node:
+            if selected_pins:
+                print('Getting digital data for pin ' + str(selected_pins) + '...')
+                url = 'http://' + selected_node + ':8000/digital/input'
+                result = asyncio.run(api_request(url))
+                if result['success'] == True:
+                    parse_data(result, selected_pins, di_result_table)
+                else:
+                    dialog(result['data'][0])
             else:
-                dialog(result['data'][0])
+                dialog('Please select one or more pin...')
         else:
-            dialog('Please select one or more pin...')
+            dialog('Please select destination remoteDAQ node...')
         page.update()
 
     '''DOI Button Function'''
     def doi_button_clicked(_):
+        selected_node = node_dropdown.value
         selected_pins = [row.cells[0].content.value for row in doi_result_table.rows if row.selected]
-        if selected_pins:
-            print('Getting digital output data for pin ' + str(selected_pins) + '...')
-            url = 'http://localhost:8000/digital_output/input'
-            result = asyncio.run(api_request(url))
-            if result['success'] == True:
-                parse_data(result, selected_pins, doi_result_table)
+        if selected_node:
+            if selected_pins:
+                print('Getting digital output data for pin ' + str(selected_pins) + '...')
+                url = 'http://' + selected_node + ':8000/digital_output/input'
+                result = asyncio.run(api_request(url))
+                if result['success'] == True:
+                    parse_data(result, selected_pins, doi_result_table)
+                else:
+                    dialog(result['data'][0])
             else:
-                dialog(result['data'][0])
+                dialog('Please select one or more pin...')
         else:
-            dialog('Please select one or more pin...')
+            dialog('Please select destination remoteDAQ node...')
         page.update()
 
     '''AO Button Function'''
     def ao_button_clicked(_):
+        selected_node = node_dropdown.value
         pin_values = [float(str(pin.value)) if pin.value != '' else 0 for pin in [
                 ao_pin_0,
                 ao_pin_1,
             ]
         ]
-        print('Setting analog data...')
-        url = 'http://localhost:8000/analog/output'
-        result = asyncio.run(api_request(url, payload=pin_values))
-        if result['success'] == True:
-            output = 'Success'
+        if selected_node:
+            print('Setting analog data...')
+            url = 'http://' + selected_node + ':8000/analog/output'
+            result = asyncio.run(api_request(url, payload=pin_values))
+            if result['success'] == True:
+                output = 'Success'
+            else:
+                output = result['data'][0]
+            dialog(output)
         else:
-            output = result['data'][0]
-        dialog(output)
+            dialog('Please select destination remoteDAQ node...')
         page.update()
     
     '''DO Button Function'''
     def do_button_clicked(_):
+        selected_node = node_dropdown.value
         pin_values = [int(bool(pin.value)) for pin in [
                 do_pin_0,
                 do_pin_1,
@@ -190,14 +207,18 @@ def main(page: ft.Page):
                 do_pin_7,
             ]
         ]
-        print('Setting digital data...')
-        url = 'http://localhost:8000/digital/output'
-        result = asyncio.run(api_request(url, payload=pin_values))
-        if result['success'] == True:
-            output = 'Success'
+        if selected_node:
+            url = 'http://' + selected_node + ':8000/digital/output'
+            print('Connecting to ' + url + ' endpoint...')
+            print('Setting digital data...')
+            result = asyncio.run(api_request(url, payload=pin_values))
+            if result['success'] == True:
+                output = 'Success'
+            else:
+                output = result['data'][0]
+            dialog(output)
         else:
-            output = result['data'][0]
-        dialog(output)
+            dialog('Please select destination remoteDAQ node...')
         page.update()
 
     '''Check AO Value Function'''
@@ -213,36 +234,6 @@ def main(page: ft.Page):
             e.control.prefix_icon = ''
         page.update()
 
-    '''Analog Input Pins'''
-    ai_pin_0 = ft.Checkbox(label='AI Pin 0', data=0)
-    ai_pin_1 = ft.Checkbox(label='AI Pin 1', data=1)
-    ai_pin_2 = ft.Checkbox(label='AI Pin 2', data=2)
-    ai_pin_3 = ft.Checkbox(label='AI Pin 3', data=3)
-    ai_pin_4 = ft.Checkbox(label='AI Pin 4', data=4)
-    ai_pin_5 = ft.Checkbox(label='AI Pin 5', data=5)
-    ai_pin_6 = ft.Checkbox(label='AI Pin 6', data=6)
-    ai_pin_7 = ft.Checkbox(label='AI Pin 7', data=7)
-    
-    '''Digital Input Pins'''
-    di_pin_0 = ft.Checkbox(label='DI Pin 0', data=0)
-    di_pin_1 = ft.Checkbox(label='DI Pin 1', data=1)
-    di_pin_2 = ft.Checkbox(label='DI Pin 2', data=2)
-    di_pin_3 = ft.Checkbox(label='DI Pin 3', data=3)
-    di_pin_4 = ft.Checkbox(label='DI Pin 4', data=4)
-    di_pin_5 = ft.Checkbox(label='DI Pin 5', data=5)
-    di_pin_6 = ft.Checkbox(label='DI Pin 6', data=6)
-    di_pin_7 = ft.Checkbox(label='DI Pin 7', data=7)
-    
-    '''Digital Output Input Pins'''
-    doi_pin_0 = ft.Checkbox(label='DO Pin 0', data=0)
-    doi_pin_1 = ft.Checkbox(label='DO Pin 1', data=1)
-    doi_pin_2 = ft.Checkbox(label='DO Pin 2', data=2)
-    doi_pin_3 = ft.Checkbox(label='DO Pin 3', data=3)
-    doi_pin_4 = ft.Checkbox(label='DO Pin 4', data=4)
-    doi_pin_5 = ft.Checkbox(label='DO Pin 5', data=5)
-    doi_pin_6 = ft.Checkbox(label='DO Pin 6', data=6)
-    doi_pin_7 = ft.Checkbox(label='DO Pin 7', data=7)
-    
     '''Analog Output Pins'''
     ao_pin_0 = ft.TextField(
         label='AO Pin 0',
@@ -577,7 +568,6 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     page.go(page.route)
-    # print(node_dropdown.value)
 
 if __name__ == '__main__':
     ft.app(target=main, view=ft.WEB_BROWSER, port=2023)
