@@ -84,19 +84,17 @@ def main(page: ft.Page):
         try:
             result = asyncio.run(api_request(url, headers=headers))
             result = [r['config']['ipAssignments'][0] for r in result]
+            result.append('localhost')
         except TypeError:
-            result = []
+            result = ['localhost']
         return result
-
-    for node in get_node_list():
-        node_dropdown.options.append(ft.dropdown.Option(node))
 
     '''Parse Data Function'''
     def parse_data(api_response, selected_pins, output_table):
         for row in output_table.rows:
             for sel_pin in selected_pins:
                 if row.cells[0].content.value == sel_pin:
-                    pin = api_response['data'][sel_pin]
+                    pin = api_response['data'][int(sel_pin)]
                     row.cells[1].content.value = pin['data']
         return 'Success'
 
@@ -260,6 +258,9 @@ def main(page: ft.Page):
     do_pin_5 = ft.Switch(label='DO Pin 5', data=1)
     do_pin_6 = ft.Switch(label='DO Pin 6', data=1)
     do_pin_7 = ft.Switch(label='DO Pin 7', data=1)
+
+    for node in get_node_list():
+        node_dropdown.options.append(ft.dropdown.Option(node))
 
     '''Input Row'''
     input_row = ft.ResponsiveRow(
