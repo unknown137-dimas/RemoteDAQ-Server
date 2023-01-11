@@ -3,6 +3,8 @@ import aiohttp
 import json
 import asyncio
 from os.path import exists
+from datetime import datetime
+import apscheduler
 
 '''API Requests Function'''
 async def api_request(url, payload=None, headers={}):
@@ -18,6 +20,8 @@ async def api_request(url, payload=None, headers={}):
                     return await response.json()
     except aiohttp.ClientConnectorError:
         return {'success':False, 'data':['Connection refused, check connection']}
+    except aiohttp.ContentTypeError:
+        return {'success':False, 'data':['Invalid token or network ID, please check again']}
 
 def main(page: ft.Page):
     '''Init'''
@@ -78,7 +82,6 @@ def main(page: ft.Page):
 
     '''Get Node List Function'''
     def get_node_list():
-        print('Updating node list...')
         url = 'https://api.zerotier.com/api/v1/network/' + str(zt_net_id.value) + '/member'
         headers = {'Authorization' : 'Bearer ' + str(zt_token.value)}
         try:
@@ -115,6 +118,8 @@ def main(page: ft.Page):
         settings['zt_net_id'] = zt_net_id.value
         with open('settings.json', 'w') as setings_file:
                 setings_file.write(json.dumps(settings))
+        dialog('Settings saved succesfully')
+        page.update()
 
     '''AI Button Function'''
     def ai_button_clicked(_):
@@ -258,9 +263,6 @@ def main(page: ft.Page):
     do_pin_5 = ft.Switch(label='DO Pin 5', data=1)
     do_pin_6 = ft.Switch(label='DO Pin 6', data=1)
     do_pin_7 = ft.Switch(label='DO Pin 7', data=1)
-
-    for node in get_node_list():
-        node_dropdown.options.append(ft.dropdown.Option(node))
 
     '''Input Row'''
     input_row = ft.ResponsiveRow(
@@ -569,6 +571,21 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     page.go(page.route)
+    
+    '''Loop Subroutine'''
+    now = datetime.now()
+    while True:
+        check = datetime.now()
+        diff = check - now
+        if diff.total_seconds() > 10:
+            if exists('settings.json'):
+                new_node_list = get_node_list()
+                if node_dropdown.options != new_node_list:
+                    for node in new_node_list:
+                        node_dropdown.options.clear()
+                        node_dropdown.options.append(ft.dropdown.Option(node))
+                        page.update()
+            now = check
 
 if __name__ == '__main__':
     ft.app(target=main, view=ft.WEB_BROWSER, port=2023)
