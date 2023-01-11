@@ -4,7 +4,7 @@ import json
 import asyncio
 from os.path import exists
 from datetime import datetime
-import apscheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 
 '''API Requests Function'''
 async def api_request(url, payload=None, headers={}):
@@ -23,6 +23,7 @@ async def api_request(url, payload=None, headers={}):
     except aiohttp.ContentTypeError:
         return {'success':False, 'data':['Invalid token or network ID, please check again']}
 
+'''UI'''
 def main(page: ft.Page):
     '''Init'''
     theme = ft.Theme()
@@ -91,6 +92,16 @@ def main(page: ft.Page):
         except TypeError:
             result = ['localhost']
         return result
+    
+    '''Update Node Dropdown Function'''
+    def update_node_dropdown():
+        if exists('settings.json'):
+            new_node_list = get_node_list()
+            if node_dropdown.options != new_node_list:
+                for node in new_node_list:
+                    node_dropdown.options.clear()
+                    node_dropdown.options.append(ft.dropdown.Option(node))
+                    page.update()
 
     '''Parse Data Function'''
     def parse_data(api_response, selected_pins, output_table):
@@ -571,21 +582,11 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     page.go(page.route)
-    
+
     '''Loop Subroutine'''
-    now = datetime.now()
-    while True:
-        check = datetime.now()
-        diff = check - now
-        if diff.total_seconds() > 10:
-            if exists('settings.json'):
-                new_node_list = get_node_list()
-                if node_dropdown.options != new_node_list:
-                    for node in new_node_list:
-                        node_dropdown.options.clear()
-                        node_dropdown.options.append(ft.dropdown.Option(node))
-                        page.update()
-            now = check
+    sched = BackgroundScheduler()
+    sched.add_job(update_node_dropdown, 'interval', seconds=3)
+    sched.start()
 
 if __name__ == '__main__':
     ft.app(target=main, view=ft.WEB_BROWSER, port=2023)
