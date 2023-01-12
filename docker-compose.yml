@@ -1,8 +1,8 @@
 version: '3'
 services:
   ui:
-    image: remotedaq_app
-    container_name: remotedaq_app
+    image: remotedaq_ui
+    container_name: remotedaq_ui
     build: .
     restart: always
     ports:
@@ -11,7 +11,7 @@ services:
       - ${PWD}/main.py:/main.py:ro
   data_db:
     image: influxdb
-    container_name: data_db
+    container_name: remotedaq_db
     restart: always
     ports:
       - 8086:8086
