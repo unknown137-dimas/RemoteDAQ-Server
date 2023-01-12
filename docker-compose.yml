@@ -8,8 +8,7 @@ services:
     ports:
       - 2023:2023
     volumes:
-      - ${PWD}/main.py:/main.py:ro
-      - ${PWD}/settings.json:/settings.json
+      - ./main.py:/main.py:ro
   data_db:
     image: influxdb
     container_name: remotedaq_db
