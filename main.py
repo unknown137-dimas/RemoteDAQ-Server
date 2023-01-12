@@ -3,7 +3,6 @@ import aiohttp
 import json
 import asyncio
 from os.path import exists
-from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 
 '''API Requests Function'''
