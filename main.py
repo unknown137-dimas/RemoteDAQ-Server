@@ -6,7 +6,7 @@ from os.path import exists
 from apscheduler.schedulers.background import BackgroundScheduler
 
 '''API Requests Function'''
-async def api_request(url, payload=None, headers={}):
+async def api_request(url, payload=None, headers={}) -> dict:
     headers['Content-Type'] = 'application/json'
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
@@ -87,18 +87,18 @@ def main(page: ft.Page):
         try:
             result = asyncio.run(api_request(url, headers=headers))
             result = [r['config']['ipAssignments'][0] for r in result]
-            result.append('localhost')
         except TypeError:
-            result = ['localhost']
+            result = []
         return result
     
     '''Update Node Dropdown Function'''
     def update_node_dropdown():
         if exists('settings.json'):
             new_node_list = get_node_list()
-            if node_dropdown.options != new_node_list:
+            node_dropdown_options = [opt.key for opt in node_dropdown.options]
+            if node_dropdown_options != new_node_list:
+                node_dropdown.options.clear()
                 for node in new_node_list:
-                    node_dropdown.options.clear()
                     node_dropdown.options.append(ft.dropdown.Option(node))
                     page.update()
 
