@@ -493,45 +493,46 @@ def main(page: ft.Page):
     def route_change(route):
         rail.selected_index = nav.index(str(page.route))
         page.views.clear()
-        '''/ Route'''
-        page.views.append(
-            ft.View(
-                '/',
-                [
-                    ft.Row(
-                        [
-                            rail,
-                            ft.VerticalDivider(width=1),
-                            ft.Column(
-                                [
-                                    node_dropdown,
-                                    ft.Tabs(
-                                        selected_index=0,
-                                        animation_duration=300,
-                                        tabs=[
-                                            ft.Tab(
-                                                text='Input',
-                                                content=ft.Container(
-                                                    input_row
+        if page.route == '/':
+            '''/ Route'''
+            page.views.append(
+                ft.View(
+                    '/',
+                    [
+                        ft.Row(
+                            [
+                                rail,
+                                ft.VerticalDivider(width=1),
+                                ft.Column(
+                                    [
+                                        node_dropdown,
+                                        ft.Tabs(
+                                            selected_index=0,
+                                            animation_duration=300,
+                                            tabs=[
+                                                ft.Tab(
+                                                    text='Input',
+                                                    content=ft.Container(
+                                                        input_row
+                                                    ),
                                                 ),
-                                            ),
-                                            ft.Tab(
-                                                text='Output',
-                                                content=ft.Container(
-                                                    output_row
+                                                ft.Tab(
+                                                    text='Output',
+                                                    content=ft.Container(
+                                                        output_row
+                                                    ),
                                                 ),
-                                            ),
-                                        ],
-                                    )
-                                ],
-                                expand=True
-                            ),
-                        ],
-                        expand=True,
-                    ),
-                ],
+                                            ],
+                                        )
+                                    ],
+                                    expand=True
+                                ),
+                            ],
+                            expand=True,
+                        ),
+                    ],
+                )
             )
-        )
         if page.route == '/settings':
             '''/settings Route'''
             page.views.append(
