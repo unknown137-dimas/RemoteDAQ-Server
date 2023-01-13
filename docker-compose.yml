@@ -10,7 +10,7 @@ services:
     volumes:
       - ./main.py:/main.py:ro
   data_db:
-    image: influxdb
+    image: influxdb:alpine
     container_name: remotedaq_db
     restart: always
     ports:
