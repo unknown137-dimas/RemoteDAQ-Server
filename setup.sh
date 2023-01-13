@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #Add Docker Repository
 sudo apt-get update
