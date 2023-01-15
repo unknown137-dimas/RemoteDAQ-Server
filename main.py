@@ -71,7 +71,7 @@ def main(page: ft.Page):
     di_result_table = result_table(8)
     doi_result_table = result_table(8)
 
-    '''Text Field'''
+    '''Text Field Instance'''
     zt_token = ft.TextField(label='ZeroTier Token')
     zt_net_id = ft.TextField(label='Network ID')
 
@@ -132,111 +132,53 @@ def main(page: ft.Page):
         dialog('Settings saved succesfully')
         page.update()
 
-    '''AI Button Function'''
-    def ai_button_clicked(_):
+    '''DAQ Function'''
+    def daq(endpoint, result_table=None, daq_pin_values=None):
         selected_node = node_dropdown.value
-        selected_pins = [row.cells[0].content.value for row in ai_result_table.rows if row.selected]
+        url = 'http://' + str(selected_node) + ':8000' + endpoint
         if selected_node:
-            if selected_pins:
-                print('Getting analog data for pin ' + str(selected_pins) + '...')
-                url = 'http://' + selected_node + ':8000/analog/input'
-                result = asyncio.run(api_request(url))
+            if result_table:
+                daq_pins = [row.cells[0].content.value for row in result_table.rows if row.selected]
+                if daq_pins:
+                    result = asyncio.run(api_request(url))
+                    if result['success'] == True:
+                        parse_data(result, daq_pins, result_table)
+                    else:
+                        dialog(result['data'][0])
+                else:
+                    dialog('Please select one or more pin...')
+            if daq_pin_values:
+                result = asyncio.run(api_request(url, payload=daq_pin_values))
                 if result['success'] == True:
-                    parse_data(result, selected_pins, ai_result_table)
+                    dialog('Success')
                 else:
                     dialog(result['data'][0])
-            else:
-                dialog('Please select one or more pin...')
         else:
             dialog('Please select destination remoteDAQ node...')
         page.update()
 
-    '''DI Button Function'''
-    def di_button_clicked(_):
-        selected_node = node_dropdown.value
-        selected_pins = [row.cells[0].content.value for row in di_result_table.rows if row.selected]
-        if selected_node:
-            if selected_pins:
-                print('Getting digital data for pin ' + str(selected_pins) + '...')
-                url = 'http://' + selected_node + ':8000/digital/input'
-                result = asyncio.run(api_request(url))
-                if result['success'] == True:
-                    parse_data(result, selected_pins, di_result_table)
-                else:
-                    dialog(result['data'][0])
-            else:
-                dialog('Please select one or more pin...')
-        else:
-            dialog('Please select destination remoteDAQ node...')
-        page.update()
-
-    '''DOI Button Function'''
-    def doi_button_clicked(_):
-        selected_node = node_dropdown.value
-        selected_pins = [row.cells[0].content.value for row in doi_result_table.rows if row.selected]
-        if selected_node:
-            if selected_pins:
-                print('Getting digital output data for pin ' + str(selected_pins) + '...')
-                url = 'http://' + selected_node + ':8000/digital_output/input'
-                result = asyncio.run(api_request(url))
-                if result['success'] == True:
-                    parse_data(result, selected_pins, doi_result_table)
-                else:
-                    dialog(result['data'][0])
-            else:
-                dialog('Please select one or more pin...')
-        else:
-            dialog('Please select destination remoteDAQ node...')
-        page.update()
-
-    '''AO Button Function'''
-    def ao_button_clicked(_):
-        selected_node = node_dropdown.value
-        pin_values = [float(str(pin.value)) if pin.value != '' else 0 for pin in [
-                ao_pin_0,
-                ao_pin_1,
+    '''DAQ Selected Pins'''
+    def output_pins(e):
+        out_type = e.control.text.lower().split(' ')[1:-1][0]
+        if out_type == 'analog':
+            return [float(str(pin.value)) if pin.value != '' else 0 for pin in [
+                    ao_pin_0,
+                    ao_pin_1,
+                ]
             ]
-        ]
-        if selected_node:
-            print('Setting analog data...')
-            url = 'http://' + selected_node + ':8000/analog/output'
-            result = asyncio.run(api_request(url, payload=pin_values))
-            if result['success'] == True:
-                output = 'Success'
-            else:
-                output = result['data'][0]
-            dialog(output)
-        else:
-            dialog('Please select destination remoteDAQ node...')
-        page.update()
-    
-    '''DO Button Function'''
-    def do_button_clicked(_):
-        selected_node = node_dropdown.value
-        pin_values = [int(bool(pin.value)) for pin in [
-                do_pin_0,
-                do_pin_1,
-                do_pin_2,
-                do_pin_3,
-                do_pin_4,
-                do_pin_5,
-                do_pin_6,
-                do_pin_7,
+        
+        if out_type == 'digital':
+            return [int(bool(pin.value)) for pin in [
+                    do_pin_0,
+                    do_pin_1,
+                    do_pin_2,
+                    do_pin_3,
+                    do_pin_4,
+                    do_pin_5,
+                    do_pin_6,
+                    do_pin_7,
+                ]
             ]
-        ]
-        if selected_node:
-            url = 'http://' + selected_node + ':8000/digital/output'
-            print('Connecting to ' + url + ' endpoint...')
-            print('Setting digital data...')
-            result = asyncio.run(api_request(url, payload=pin_values))
-            if result['success'] == True:
-                output = 'Success'
-            else:
-                output = result['data'][0]
-            dialog(output)
-        else:
-            dialog('Please select destination remoteDAQ node...')
-        page.update()
 
     '''Check AO Value Function'''
     def check_ao_value(e):
@@ -275,6 +217,13 @@ def main(page: ft.Page):
     do_pin_6 = ft.Switch(label='DO Pin 6', data=1)
     do_pin_7 = ft.Switch(label='DO Pin 7', data=1)
 
+    '''API Endpoints'''
+    ai_endpoint = '/analog/input'
+    di_endpoint = '/digital/input'
+    doi_endpoint = '/digital_output/input'
+    ao_endpoint = '/analog/output'
+    do_endpoint = '/digital/output'
+
     '''Input Row'''
     input_row = ft.ResponsiveRow(
         [
@@ -286,7 +235,7 @@ def main(page: ft.Page):
                             ai_result_table,
                             ft.ElevatedButton(
                                 text='Get Analog Data',
-                                on_click=ai_button_clicked,
+                                on_click=lambda e: daq(ai_endpoint, result_table=ai_result_table),
                                 style=ft.ButtonStyle(
                                     bgcolor=ft.colors.SECONDARY_CONTAINER
                                 )
@@ -308,7 +257,7 @@ def main(page: ft.Page):
                             di_result_table,
                             ft.ElevatedButton(
                                 text='Get Digital Data',
-                                on_click=di_button_clicked,
+                                on_click=lambda e: daq(di_endpoint, result_table=di_result_table),
                                 style=ft.ButtonStyle(
                                     bgcolor=ft.colors.SECONDARY_CONTAINER
                                 )
@@ -330,7 +279,7 @@ def main(page: ft.Page):
                                 doi_result_table,
                                 ft.ElevatedButton(
                                     text='Get Digital Output Data',
-                                    on_click=doi_button_clicked,
+                                    on_click=lambda e: daq(doi_endpoint, result_table=doi_result_table),
                                     style=ft.ButtonStyle(
                                         bgcolor=ft.colors.SECONDARY_CONTAINER
                                     )
@@ -361,7 +310,7 @@ def main(page: ft.Page):
                             ao_pin_1,
                             ft.ElevatedButton(
                                 text='Set Analog Data',
-                                on_click=ao_button_clicked,
+                                on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
                                 style=ft.ButtonStyle(
                                     bgcolor=ft.colors.SECONDARY_CONTAINER
                                 )
@@ -390,7 +339,7 @@ def main(page: ft.Page):
                             do_pin_7,
                             ft.ElevatedButton(
                                 text='Set Digital Data',
-                                on_click=do_button_clicked,
+                                on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
                                 style=ft.ButtonStyle(
                                     bgcolor=ft.colors.SECONDARY_CONTAINER
                                 )
@@ -407,6 +356,26 @@ def main(page: ft.Page):
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         vertical_alignment=ft.CrossAxisAlignment.START,
+    )
+
+    '''Main Tab'''
+    main_tab = ft.Tabs(
+        selected_index=0,
+        animation_duration=300,
+        tabs=[
+            ft.Tab(
+                text='Input',
+                content=ft.Container(
+                    input_row
+                ),
+            ),
+            ft.Tab(
+                text='Output',
+                content=ft.Container(
+                    output_row
+                ),
+            ),
+        ],
     )
 
     '''Settings Tab'''
@@ -508,24 +477,7 @@ def main(page: ft.Page):
                                 ft.Column(
                                     [
                                         node_dropdown,
-                                        ft.Tabs(
-                                            selected_index=0,
-                                            animation_duration=300,
-                                            tabs=[
-                                                ft.Tab(
-                                                    text='Input',
-                                                    content=ft.Container(
-                                                        input_row
-                                                    ),
-                                                ),
-                                                ft.Tab(
-                                                    text='Output',
-                                                    content=ft.Container(
-                                                        output_row
-                                                    ),
-                                                ),
-                                            ],
-                                        )
+                                        main_tab,
                                     ],
                                     expand=True
                                 ),
