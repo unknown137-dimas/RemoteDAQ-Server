@@ -22,6 +22,32 @@ async def api_request(url, payload=None, headers={}) -> dict:
     except aiohttp.ContentTypeError:
         return {'success':False, 'data':['Invalid token or network ID, please check again']}
 
+'''Result Table Class'''
+class result_table(ft.DataTable):
+    def __init__(self, pin_count):
+        self.pin_count = pin_count
+        super().__init__(
+            border=ft.border.all(1, ft.colors.SECONDARY),
+            border_radius=10,
+            vertical_lines=ft.border.BorderSide(1, ft.colors.SECONDARY),
+            show_checkbox_column=True,
+            columns=[
+                ft.DataColumn(ft.Text('Pin')),
+                ft.DataColumn(ft.Text('Value'), numeric=True),
+            ],
+            rows=[
+                ft.DataRow(
+                    [ft.DataCell(ft.Text(str(i))), ft.DataCell(ft.Text(''))],
+                    on_select_changed=self.cell_selected,
+                ) for i in range(0, self.pin_count)
+            ]
+        )
+
+    '''Result Table Checkbox Function'''
+    def cell_selected(self, e):
+        e.control.selected = not e.control.selected
+        self.update()
+
 '''UI'''
 def main(page: ft.Page):
     '''Init'''
@@ -40,35 +66,10 @@ def main(page: ft.Page):
         page.dialog = ft.AlertDialog(title=ft.Text(text))
         page.dialog.open = True
 
-    '''Result Table Checkbox Function'''
-    def cell_selected(e):
-        e.control.selected = not e.control.selected
-        page.update()
-
-    '''Result Table Class'''
-    class table(ft.DataTable):
-        def __init__(self):
-            super().__init__(
-                border=ft.border.all(1, ft.colors.SECONDARY),
-                border_radius=10,
-                vertical_lines=ft.border.BorderSide(1, ft.colors.SECONDARY),
-                show_checkbox_column=True,
-                columns=[
-                    ft.DataColumn(ft.Text('Pin')),
-                    ft.DataColumn(ft.Text('Value'), numeric=True),
-                ],
-                rows=[
-                    ft.DataRow(
-                        [ft.DataCell(ft.Text(str(i))), ft.DataCell(ft.Text(''))],
-                        on_select_changed=cell_selected,
-                    ) for i in range(0,8)
-                ]
-            )
-
     '''Result Table Instance'''
-    ai_result_table =  table()
-    di_result_table = table()
-    doi_result_table = table()
+    ai_result_table =  result_table(8)
+    di_result_table = result_table(8)
+    doi_result_table = result_table(8)
 
     '''Text Field'''
     zt_token = ft.TextField(label='ZeroTier Token')
@@ -491,9 +492,10 @@ def main(page: ft.Page):
 
     '''Page View Route Function'''
     def route_change(route):
-        rail.selected_index = nav.index(str(page.route))
+        route_data = route.data
+        rail.selected_index = nav.index(route_data)
         page.views.clear()
-        if page.route == '/':
+        if route_data == '/':
             '''/ Route'''
             page.views.append(
                 ft.View(
@@ -533,7 +535,7 @@ def main(page: ft.Page):
                     ],
                 )
             )
-        if page.route == '/settings':
+        if route_data == '/settings':
             '''/settings Route'''
             page.views.append(
                 ft.View(
@@ -554,7 +556,7 @@ def main(page: ft.Page):
                     ],
                 )
             )
-        if page.route == '/about':
+        if route_data == '/about':
             '''/about Route'''
             page.views.append(
                 ft.View(
