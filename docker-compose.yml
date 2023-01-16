@@ -5,6 +5,8 @@ services:
     container_name: remotedaq_ui
     build: .
     restart: always
+    environment:
+      - ZT_ID=${ZT_ID}
     ports:
       - 2023:2023
     volumes:

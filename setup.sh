@@ -13,7 +13,8 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 #Install Zerotier Client
 curl -s https://install.zerotier.com | sudo bash
-zerotier-cli join $1
+sudo zerotier-cli join $1
+export ZT_ID=$(sudo zerotier-cli info | cut -d ' ' -f 3)
 
 #Deploy
 docker-compose up -d
