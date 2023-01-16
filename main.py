@@ -3,6 +3,7 @@ import aiohttp
 import json
 import asyncio
 from os.path import exists
+from os import getenv
 from apscheduler.schedulers.background import BackgroundScheduler
 
 '''API Requests Function'''
@@ -87,7 +88,7 @@ def main(page: ft.Page):
         headers = {'Authorization' : 'Bearer ' + str(zt_token.value)}
         try:
             result = asyncio.run(api_request(url, headers=headers))
-            result = [r['config']['ipAssignments'][0] for r in result]
+            result = [r['config']['ipAssignments'][0] for r in result if r['nodeId'] != getenv('ZT_ID')]
         except TypeError:
             result = []
         return result
