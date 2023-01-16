@@ -23,6 +23,26 @@ async def api_request(url, payload=None, headers={}) -> dict:
     except aiohttp.ContentTypeError:
         return {'success':False, 'data':['Invalid token or network ID, please check again']}
 
+'''Card Class'''
+class card(ft.UserControl):
+    def __init__(self, container_padding, card_elevation, obj):
+        super().__init__()
+        self.container_padding = container_padding
+        self.card_elevation = card_elevation
+        self.obj = obj
+    
+    def build(self):
+        return ft.Card(    
+            ft.Container(
+                self.obj,
+                padding=self.container_padding,
+            ),
+            elevation=self.card_elevation,
+            col={'sm': 3, 'md': 4, 'xl': 3},
+            height=580,
+            width=300,
+        )
+
 '''Result Table Class'''
 class result_table(ft.DataTable):
     def __init__(self, pin_count):
@@ -54,7 +74,7 @@ def main(page: ft.Page):
     '''Init'''
     theme = ft.Theme()
     theme.color_scheme_seed = 'green'
-    theme.page_transitions.windows = ft.PageTransitionTheme.CUPERTINO
+    theme.page_transitions.windows = ft.PageTransitionTheme.NONE
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
@@ -226,137 +246,116 @@ def main(page: ft.Page):
     do_endpoint = '/digital/output'
 
     '''Input Row'''
-    input_row = ft.ResponsiveRow(
+    input_row = ft.Row(
         [
-            ft.Card(
-                ft.Container(
-                    ft.Column(
-                        [
-                            ft.Text('Analog Input', weight=ft.FontWeight.BOLD),
-                            ai_result_table,
-                            ft.ElevatedButton(
-                                text='Get Analog Data',
-                                on_click=lambda e: daq(ai_endpoint, result_table=ai_result_table),
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=container_padding,
-                ),
-                elevation=card_elevation,
-                col={'sm': 3, 'md': 4, 'xl': 3},
-            ),
-            ft.Card(
-                ft.Container(
-                    ft.Column(
-                        [
-                            ft.Text('Digital Input', weight=ft.FontWeight.BOLD),
-                            di_result_table,
-                            ft.ElevatedButton(
-                                text='Get Digital Data',
-                                on_click=lambda e: daq(di_endpoint, result_table=di_result_table),
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
-                            ),
-                        ],
-                        alignment = ft.MainAxisAlignment.CENTER,
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=container_padding,
-                ),
-                elevation=card_elevation,
-                col={'sm': 3, 'md': 4, 'xl': 3},
-            ),
-            ft.Card(
-                ft.Container(
-                        ft.Column(
-                            [
-                                ft.Text('"Digital Output" Input', weight=ft.FontWeight.BOLD),
-                                doi_result_table,
-                                ft.ElevatedButton(
-                                    text='Get Digital Output Data',
-                                    on_click=lambda e: daq(doi_endpoint, result_table=doi_result_table),
-                                    style=ft.ButtonStyle(
-                                        bgcolor=ft.colors.SECONDARY_CONTAINER
-                                    )
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            card(container_padding, card_elevation,
+                ft.Column(
+                    [
+                        ft.Text('Analog Input', weight=ft.FontWeight.BOLD),
+                        ai_result_table,
+                        ft.ElevatedButton(
+                            text='Get Analog Data',
+                            on_click=lambda e: daq(ai_endpoint, result_table=ai_result_table),
+                            style=ft.ButtonStyle(
+                                bgcolor=ft.colors.SECONDARY_CONTAINER
+                            )
                         ),
-                        padding=container_padding,
-                ),
-                elevation=card_elevation,
-                col={'sm': 3, 'md': 4, 'xl': 3},
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+            ),
+            card(container_padding, card_elevation,
+                ft.Column(
+                    [
+                        ft.Text('Digital Input', weight=ft.FontWeight.BOLD),
+                        di_result_table,
+                        ft.ElevatedButton(
+                            text='Get Digital Data',
+                            on_click=lambda e: daq(di_endpoint, result_table=di_result_table),
+                            style=ft.ButtonStyle(
+                                bgcolor=ft.colors.SECONDARY_CONTAINER
+                            )
+                        ),
+                    ],
+                    alignment = ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+            ),
+            card(container_padding, card_elevation, 
+                ft.Column(
+                    [
+                        ft.Text('"Digital Output" Input', weight=ft.FontWeight.BOLD),
+                        doi_result_table,
+                        ft.ElevatedButton(
+                            text='Get Digital Output Data',
+                            on_click=lambda e: daq(doi_endpoint, result_table=doi_result_table),
+                            style=ft.ButtonStyle(
+                                bgcolor=ft.colors.SECONDARY_CONTAINER
+                            )
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
             ),
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         vertical_alignment=ft.CrossAxisAlignment.START,
+        scroll=ft.ScrollMode.ADAPTIVE,
+        wrap=True,
     )
 
     '''Output Row'''
-    output_row = ft.ResponsiveRow(
+    output_row = ft.Row(
         [
-            ft.Card(
-                ft.Container(
-                    ft.Column(
-                        [
-                            ft.Text('Analog Output', weight=ft.FontWeight.BOLD),
-                            ao_pin_0,
-                            ao_pin_1,
-                            ft.ElevatedButton(
-                                text='Set Analog Data',
-                                on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=container_padding,
-                ),
-                elevation=card_elevation,
-                col={'sm': 3, 'md': 4, 'xl': 3},
+            card(container_padding, card_elevation,
+                ft.Column(
+                    [
+                        ft.Text('Analog Output', weight=ft.FontWeight.BOLD),
+                        ao_pin_0,
+                        ao_pin_1,
+                        ft.ElevatedButton(
+                            text='Set Analog Data',
+                            on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
+                            style=ft.ButtonStyle(
+                                bgcolor=ft.colors.SECONDARY_CONTAINER
+                            )
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
             ),
-            ft.Card(
-                ft.Container(
-                    ft.Column(
-                        [
-                            ft.Text('Digital Output', weight=ft.FontWeight.BOLD),
-                            do_pin_0,
-                            do_pin_1,
-                            do_pin_2,
-                            do_pin_3,
-                            do_pin_4,
-                            do_pin_5,
-                            do_pin_6,
-                            do_pin_7,
-                            ft.ElevatedButton(
-                                text='Set Digital Data',
-                                on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=container_padding,
-                ),
-                elevation=card_elevation,
-                col={'sm': 3, 'md': 4, 'xl': 3},
-            ),
+            card(container_padding, card_elevation,
+                ft.Column(
+                    [
+                        ft.Text('Digital Output', weight=ft.FontWeight.BOLD),
+                        do_pin_0,
+                        do_pin_1,
+                        do_pin_2,
+                        do_pin_3,
+                        do_pin_4,
+                        do_pin_5,
+                        do_pin_6,
+                        do_pin_7,
+                        ft.ElevatedButton(
+                            text='Set Digital Data',
+                            on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
+                            style=ft.ButtonStyle(
+                                bgcolor=ft.colors.SECONDARY_CONTAINER
+                            )
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+            )
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         vertical_alignment=ft.CrossAxisAlignment.START,
+        scroll=ft.ScrollMode.ADAPTIVE,
+        wrap=True,
     )
 
     '''Main Tab'''
@@ -377,6 +376,7 @@ def main(page: ft.Page):
                 ),
             ),
         ],
+        expand=1,
     )
 
     '''Settings Tab'''
@@ -388,7 +388,7 @@ def main(page: ft.Page):
                 text='General',
                 icon=ft.icons.SETTINGS,
                 content=ft.Container(
-                    content=ft.Text('This is Tab 1'), alignment=ft.alignment.center
+                    content=result_table(10), alignment=ft.alignment.center
                 ),
             ),
             ft.Tab(
