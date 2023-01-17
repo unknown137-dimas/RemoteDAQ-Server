@@ -125,14 +125,15 @@ def main(page: ft.Page):
                     page.update()
 
     '''Parse Data Function'''
-    def parse_data(api_response, selected_pins, output_table):
+    def parse_data(api_response, output_table):
         for row in output_table.rows:
-            for sel_pin in selected_pins:
-                if row.cells[0].content.value == sel_pin:
-                    pin = api_response['data'][int(sel_pin)]
-                    row.cells[1].content.value = pin['data']
-                else:
-                    row.cells[1].content.value = ''
+            if row.selected:
+                sel_pin = int(row.cells[0].content.value)
+                pin = api_response['data'][sel_pin]
+                row.cells[1].content.value = pin['data']
+            else:
+                row.cells[1].content.value = ''
+        output_table.update()
         return 'Success'
 
     '''Load Settings Function'''
@@ -165,7 +166,7 @@ def main(page: ft.Page):
                 if daq_pins:
                     result = asyncio.run(api_request(url))
                     if result['success'] == True:
-                        parse_data(result, daq_pins, result_table)
+                        dialog(parse_data(result, result_table))
                     else:
                         dialog(result['data'][0])
                 else:
