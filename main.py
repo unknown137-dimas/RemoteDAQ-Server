@@ -79,7 +79,7 @@ def main(page: ft.Page):
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
     nav = ['/', '/settings', '/about']
-    card_elevation = 2
+    card_elevation = 5
     container_padding = 15
 
     '''Alert Dialog'''
@@ -291,12 +291,9 @@ def main(page: ft.Page):
                         ),
                         ft.Container(
                             expand=1,
-                            content=ft.ElevatedButton(
+                            content=ft.FilledButton(
                                 text='Get Analog Data',
                                 on_click=lambda e: daq(ai_endpoint, result_table=ai_result_table),
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
                             )
                         )
                     ],
@@ -316,12 +313,9 @@ def main(page: ft.Page):
                         ),
                         ft.Container(
                             expand=1,
-                            content=ft.ElevatedButton(
+                            content=ft.FilledButton(
                                 text='Get Digital Data',
                                 on_click=lambda e: daq(di_endpoint, result_table=di_result_table),
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
                             )
                         )
                     ],
@@ -341,12 +335,9 @@ def main(page: ft.Page):
                         ),
                         ft.Container(
                             expand=1,
-                            content=ft.ElevatedButton(
+                            content=ft.FilledButton(
                                 text='Get Digital Output Data',
                                 on_click=lambda e: daq(doi_endpoint, result_table=doi_result_table),
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
                             )
                         )
                     ],
@@ -383,12 +374,9 @@ def main(page: ft.Page):
                             expand=1,
                             content=ft.Row(
                                 [
-                                    ft.ElevatedButton(
+                                    ft.FilledButton(
                                         text='Set Analog Data',
                                         on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
-                                        style=ft.ButtonStyle(
-                                            bgcolor=ft.colors.SECONDARY_CONTAINER
-                                        )
                                     ),
                                     ft.ElevatedButton(
                                         text='Reset All Pins',
@@ -430,11 +418,11 @@ def main(page: ft.Page):
                             expand=1,
                             content=ft.Row(
                                 [
-                                    ft.ElevatedButton(
+                                    ft.FilledButton(
                                         text='Set Digital Data',
                                         on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
                                         style=ft.ButtonStyle(
-                                            bgcolor=ft.colors.SECONDARY_CONTAINER
+                                            bgcolor=ft.colors.SECONDARY_CONTAINER,
                                         )
                                     ),
                                     ft.ElevatedButton(
