@@ -12,5 +12,6 @@ else
     export ZT_ID=$(sudo zerotier-cli info | cut -d ' ' -f 3)
     
     #Deploy
+    docker volume create --name=influxdb-data
     docker-compose up -d
 fi
