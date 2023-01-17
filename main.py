@@ -131,6 +131,8 @@ def main(page: ft.Page):
                 if row.cells[0].content.value == sel_pin:
                     pin = api_response['data'][int(sel_pin)]
                     row.cells[1].content.value = pin['data']
+                else:
+                    row.cells[1].content.value = ''
         return 'Success'
 
     '''Load Settings Function'''
@@ -207,12 +209,17 @@ def main(page: ft.Page):
         if value and float(value) > 5:
             e.control.border_color = ft.colors.RED
             e.control.helper_text = 'Invalid value'
-            e.control.prefix_icon = ft.icons.ERROR_OUTLINE
         else:
             e.control.border_color = ft.colors.PRIMARY
             e.control.helper_text = 'Valid range is 0 - 5 Volt'
-            e.control.prefix_icon = ''
-        page.update()
+        e.control.update()
+
+    '''Reset All AO Pins Function'''
+    def ao_pins_reset_clicked(e):
+        ao_pin_0.value = '0'
+        ao_pin_0.update()
+        ao_pin_1.value = '0'
+        ao_pin_1.update()
 
     '''Analog Output Pins'''
     ao_pin_0 = ft.TextField(
@@ -228,21 +235,37 @@ def main(page: ft.Page):
         helper_text='Valid range is 0 - 5 Volt'
         )
     
-    def do_pin_all_clicked(e):
-        e.data
-        for i in range(0, 8):
-            x = 'do_pin_' + str(i)
+    '''Toggle All DO Pins Function'''
+    def do_pins_all_clicked(e):
+        value = do_pin_0.value
+        value = not value
+        do_pin_0.value = value
+        do_pin_0.update()
+        do_pin_1.value = value
+        do_pin_1.update()
+        do_pin_2.value = value
+        do_pin_2.update()
+        do_pin_3.value = value
+        do_pin_3.update()
+        do_pin_4.value = value
+        do_pin_4.update()
+        do_pin_5.value = value
+        do_pin_5.update()
+        do_pin_6.value = value
+        do_pin_6.update()
+        do_pin_7.value = value
+        do_pin_7.update()
+        
 
     '''Digital Output Pins'''
-    do_pin_all = ft.Switch(label='Toggle All Pins', on_change=do_pin_all_clicked)
-    do_pin_0 = ft.Switch(label='DO Pin 0', data=1)
-    do_pin_1 = ft.Switch(label='DO Pin 1', data=1)
-    do_pin_2 = ft.Switch(label='DO Pin 2', data=1)
-    do_pin_3 = ft.Switch(label='DO Pin 3', data=1)
-    do_pin_4 = ft.Switch(label='DO Pin 4', data=1)
-    do_pin_5 = ft.Switch(label='DO Pin 5', data=1)
-    do_pin_6 = ft.Switch(label='DO Pin 6', data=1)
-    do_pin_7 = ft.Switch(label='DO Pin 7', data=1)
+    do_pin_0 = ft.Switch(label='DO Pin 0')
+    do_pin_1 = ft.Switch(label='DO Pin 1')
+    do_pin_2 = ft.Switch(label='DO Pin 2')
+    do_pin_3 = ft.Switch(label='DO Pin 3')
+    do_pin_4 = ft.Switch(label='DO Pin 4')
+    do_pin_5 = ft.Switch(label='DO Pin 5')
+    do_pin_6 = ft.Switch(label='DO Pin 6')
+    do_pin_7 = ft.Switch(label='DO Pin 7')
 
     '''API Endpoints'''
     ai_endpoint = '/analog/input'
@@ -357,12 +380,23 @@ def main(page: ft.Page):
                         ),
                         ft.Container(
                             expand=1,
-                            content=ft.ElevatedButton(
-                                text='Set Analog Data',
-                                on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
+                            content=ft.Row(
+                                [
+                                    ft.ElevatedButton(
+                                        text='Set Analog Data',
+                                        on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
+                                        style=ft.ButtonStyle(
+                                            bgcolor=ft.colors.SECONDARY_CONTAINER
+                                        )
+                                    ),
+                                    ft.ElevatedButton(
+                                        text='Reset All Pins',
+                                        on_click=ao_pins_reset_clicked,
+                                        style=ft.ButtonStyle(
+                                            bgcolor=ft.colors.SECONDARY_CONTAINER
+                                        )
+                                    ),
+                                ]
                             )
                         )
                     ],
@@ -380,7 +414,6 @@ def main(page: ft.Page):
                             expand=11,
                             content=ft.Column(
                                 [
-                                    do_pin_all,
                                     do_pin_0,
                                     do_pin_1,
                                     do_pin_2,
@@ -394,12 +427,23 @@ def main(page: ft.Page):
                         ),
                         ft.Container(
                             expand=1,
-                            content=ft.ElevatedButton(
-                                text='Set Digital Data',
-                                on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
-                                style=ft.ButtonStyle(
-                                    bgcolor=ft.colors.SECONDARY_CONTAINER
-                                )
+                            content=ft.Row(
+                                [
+                                    ft.ElevatedButton(
+                                        text='Set Digital Data',
+                                        on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
+                                        style=ft.ButtonStyle(
+                                            bgcolor=ft.colors.SECONDARY_CONTAINER
+                                        )
+                                    ),
+                                    ft.ElevatedButton(
+                                        text='Toggle All Pins',
+                                        on_click=do_pins_all_clicked,
+                                        style=ft.ButtonStyle(
+                                            bgcolor=ft.colors.SECONDARY_CONTAINER
+                                        )
+                                    ),
+                                ]
                             )
                         )
                     ],
