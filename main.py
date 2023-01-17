@@ -108,7 +108,7 @@ def main(page: ft.Page):
         headers = {'Authorization' : 'Bearer ' + str(zt_token.value)}
         try:
             result = asyncio.run(api_request(url, headers=headers))
-            result = [r['config']['ipAssignments'][0] for r in result if r['nodeId'] != getenv('ZT_ID')]
+            result = [r['config']['ipAssignments'][0] for r in result if r['nodeId'] != getenv('ZT_ID') and r['online']]
         except TypeError:
             result = []
         return result
