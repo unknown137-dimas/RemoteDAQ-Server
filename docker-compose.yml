@@ -11,11 +11,16 @@ services:
       - 2023:2023
     volumes:
       - ./main.py:/rdaq-server/main.py:ro
-      - ./settings.json:/rdaq-server/settings.json:ro
+      - ./settings.json:/rdaq-server/settings.json
   data_db:
     image: influxdb:alpine
     container_name: remotedaq_db
     restart: always
+    environment:
+      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
     ports:
       - 8086:8086
     volumes:
