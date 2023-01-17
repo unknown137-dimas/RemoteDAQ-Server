@@ -228,7 +228,13 @@ def main(page: ft.Page):
         helper_text='Valid range is 0 - 5 Volt'
         )
     
+    def do_pin_all_clicked(e):
+        e.data
+        for i in range(0, 8):
+            x = 'do_pin_' + str(i)
+
     '''Digital Output Pins'''
+    do_pin_all = ft.Switch(label='Toggle All Pins', on_change=do_pin_all_clicked)
     do_pin_0 = ft.Switch(label='DO Pin 0', data=1)
     do_pin_1 = ft.Switch(label='DO Pin 1', data=1)
     do_pin_2 = ft.Switch(label='DO Pin 2', data=1)
@@ -251,51 +257,75 @@ def main(page: ft.Page):
             card(container_padding, card_elevation,
                 ft.Column(
                     [
-                        ft.Text('Analog Input', weight=ft.FontWeight.BOLD),
-                        ai_result_table,
-                        ft.ElevatedButton(
-                            text='Get Analog Data',
-                            on_click=lambda e: daq(ai_endpoint, result_table=ai_result_table),
-                            style=ft.ButtonStyle(
-                                bgcolor=ft.colors.SECONDARY_CONTAINER
-                            )
+                        ft.Container(
+                            expand=1,
+                            content=ft.Text('Analog Input', weight=ft.FontWeight.BOLD)
                         ),
+                        ft.Container(
+                            expand=11,
+                            content=ai_result_table
+                        ),
+                        ft.Container(
+                            expand=1,
+                            content=ft.ElevatedButton(
+                                text='Get Analog Data',
+                                on_click=lambda e: daq(ai_endpoint, result_table=ai_result_table),
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
+                            )
+                        )
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
             ),
             card(container_padding, card_elevation,
                 ft.Column(
                     [
-                        ft.Text('Digital Input', weight=ft.FontWeight.BOLD),
-                        di_result_table,
-                        ft.ElevatedButton(
-                            text='Get Digital Data',
-                            on_click=lambda e: daq(di_endpoint, result_table=di_result_table),
-                            style=ft.ButtonStyle(
-                                bgcolor=ft.colors.SECONDARY_CONTAINER
-                            )
+                        ft.Container(
+                            expand=1,
+                            content=ft.Text('Digital Input', weight=ft.FontWeight.BOLD)
                         ),
+                        ft.Container(
+                            expand=11,
+                            content=di_result_table
+                        ),
+                        ft.Container(
+                            expand=1,
+                            content=ft.ElevatedButton(
+                                text='Get Digital Data',
+                                on_click=lambda e: daq(di_endpoint, result_table=di_result_table),
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
+                            )
+                        )
                     ],
-                    alignment = ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
             ),
             card(container_padding, card_elevation, 
                 ft.Column(
                     [
-                        ft.Text('"Digital Output" Input', weight=ft.FontWeight.BOLD),
-                        doi_result_table,
-                        ft.ElevatedButton(
-                            text='Get Digital Output Data',
-                            on_click=lambda e: daq(doi_endpoint, result_table=doi_result_table),
-                            style=ft.ButtonStyle(
-                                bgcolor=ft.colors.SECONDARY_CONTAINER
-                            )
+                        ft.Container(
+                            expand=1,
+                            content=ft.Text('"Digital Output" Input', weight=ft.FontWeight.BOLD)
                         ),
+                        ft.Container(
+                            expand=11,
+                            content=doi_result_table
+                        ),
+                        ft.Container(
+                            expand=1,
+                            content=ft.ElevatedButton(
+                                text='Get Digital Output Data',
+                                on_click=lambda e: daq(doi_endpoint, result_table=doi_result_table),
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
+                            )
+                        )
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
             ),
@@ -312,42 +342,67 @@ def main(page: ft.Page):
             card(container_padding, card_elevation,
                 ft.Column(
                     [
-                        ft.Text('Analog Output', weight=ft.FontWeight.BOLD),
-                        ao_pin_0,
-                        ao_pin_1,
-                        ft.ElevatedButton(
-                            text='Set Analog Data',
-                            on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
-                            style=ft.ButtonStyle(
-                                bgcolor=ft.colors.SECONDARY_CONTAINER
+                        ft.Container(
+                            expand=1,
+                            content=ft.Text('Analog Output', weight=ft.FontWeight.BOLD)
+                        ),
+                        ft.Container(
+                            expand=11,
+                            content=ft.Column(
+                                [
+                                    ao_pin_0,
+                                    ao_pin_1
+                                ]
                             )
                         ),
+                        ft.Container(
+                            expand=1,
+                            content=ft.ElevatedButton(
+                                text='Set Analog Data',
+                                on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
+                            )
+                        )
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
             ),
             card(container_padding, card_elevation,
                 ft.Column(
                     [
-                        ft.Text('Digital Output', weight=ft.FontWeight.BOLD),
-                        do_pin_0,
-                        do_pin_1,
-                        do_pin_2,
-                        do_pin_3,
-                        do_pin_4,
-                        do_pin_5,
-                        do_pin_6,
-                        do_pin_7,
-                        ft.ElevatedButton(
-                            text='Set Digital Data',
-                            on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
-                            style=ft.ButtonStyle(
-                                bgcolor=ft.colors.SECONDARY_CONTAINER
+                        ft.Container(
+                            expand=1,
+                            content=ft.Text('Digital Output', weight=ft.FontWeight.BOLD)
+                        ),
+                        ft.Container(
+                            expand=11,
+                            content=ft.Column(
+                                [
+                                    do_pin_all,
+                                    do_pin_0,
+                                    do_pin_1,
+                                    do_pin_2,
+                                    do_pin_3,
+                                    do_pin_4,
+                                    do_pin_5,
+                                    do_pin_6,
+                                    do_pin_7
+                                ]
                             )
                         ),
+                        ft.Container(
+                            expand=1,
+                            content=ft.ElevatedButton(
+                                text='Set Digital Data',
+                                on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
+                                style=ft.ButtonStyle(
+                                    bgcolor=ft.colors.SECONDARY_CONTAINER
+                                )
+                            )
+                        )
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
             )
