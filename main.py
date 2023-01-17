@@ -136,6 +136,14 @@ def main(page: ft.Page):
         output_table.update()
         return 'Success'
 
+    '''Save Settings Function'''
+    def save_settings_file():
+        settings = {}
+        settings['zt_token'] = zt_token.value
+        settings['zt_net_id'] = zt_net_id.value
+        with open('settings.json', 'w') as setings_file:
+                setings_file.write(json.dumps(settings))
+
     '''Load Settings Function'''
     def load_settings_file():
         if exists('settings.json'):
@@ -144,15 +152,13 @@ def main(page: ft.Page):
                     settings = json.loads(settings_file.readline())
                     zt_token.value = settings['zt_token']
                     zt_net_id.value = settings['zt_net_id']
+        else:
+            save_settings_file()
     load_settings_file()
 
     '''Save Button Function'''
     def save_button_clicked(_):
-        settings = {}
-        settings['zt_token'] = zt_token.value
-        settings['zt_net_id'] = zt_net_id.value
-        with open('settings.json', 'w') as setings_file:
-                setings_file.write(json.dumps(settings))
+        save_settings_file()
         dialog('Settings saved succesfully')
         page.update()
 
