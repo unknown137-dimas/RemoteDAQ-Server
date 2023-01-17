@@ -9,9 +9,10 @@ else
 
     #Join Zerotier Network
     sudo zerotier-cli join $1
-    export ZT_ID=$(sudo zerotier-cli info | cut -d ' ' -f 3)
+    echo ZT_ID=$(sudo zerotier-cli info | cut -d ' ' -f 3) > .env
     
     #Deploy
+    touch settings.json
     docker volume create --name=influxdb-data
     docker-compose up -d
 fi
