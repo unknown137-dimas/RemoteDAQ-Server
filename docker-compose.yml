@@ -10,7 +10,8 @@ services:
     ports:
       - 2023:2023
     volumes:
-      - ./main.py:/main.py:ro
+      - ./main.py:/rdaq-server/main.py:ro
+      - ./settings.json:/rdaq-server/settings.json:ro
   data_db:
     image: influxdb:alpine
     container_name: remotedaq_db
