@@ -25,7 +25,7 @@ async def api_request(url, payload=None, headers={}) -> dict:
 
 '''Card Class'''
 class card(ft.UserControl):
-    def __init__(self, container_padding, card_elevation, obj):
+    def __init__(self, container_padding=15, card_elevation=5, obj=None):
         super().__init__()
         self.container_padding = container_padding
         self.card_elevation = card_elevation
@@ -79,8 +79,6 @@ def main(page: ft.Page):
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
     nav = ['/', '/settings', '/about']
-    card_elevation = 5
-    container_padding = 15
 
     '''Alert Dialog'''
     def dialog(text):
@@ -284,7 +282,7 @@ def main(page: ft.Page):
     '''Input Row'''
     input_row = ft.Row(
         [
-            card(container_padding, card_elevation,
+            card(obj=
                 ft.Column(
                     [
                         ft.Container(
@@ -298,7 +296,7 @@ def main(page: ft.Page):
                         ft.Container(
                             expand=1,
                             content=ft.FilledButton(
-                                text='Get Analog Data',
+                                'Get Analog Data',
                                 on_click=lambda e: daq(ai_endpoint, result_table=ai_result_table),
                             )
                         )
@@ -306,7 +304,7 @@ def main(page: ft.Page):
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
             ),
-            card(container_padding, card_elevation,
+            card(obj=
                 ft.Column(
                     [
                         ft.Container(
@@ -320,7 +318,7 @@ def main(page: ft.Page):
                         ft.Container(
                             expand=1,
                             content=ft.FilledButton(
-                                text='Get Digital Data',
+                                'Get Digital Data',
                                 on_click=lambda e: daq(di_endpoint, result_table=di_result_table),
                             )
                         )
@@ -328,7 +326,7 @@ def main(page: ft.Page):
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
             ),
-            card(container_padding, card_elevation, 
+            card(obj=
                 ft.Column(
                     [
                         ft.Container(
@@ -342,7 +340,7 @@ def main(page: ft.Page):
                         ft.Container(
                             expand=1,
                             content=ft.FilledButton(
-                                text='Get Digital Output Data',
+                                'Get Digital Output Data',
                                 on_click=lambda e: daq(doi_endpoint, result_table=doi_result_table),
                             )
                         )
@@ -360,7 +358,7 @@ def main(page: ft.Page):
     '''Output Row'''
     output_row = ft.Row(
         [
-            card(container_padding, card_elevation,
+            card(obj=
                 ft.Column(
                     [
                         ft.Container(
@@ -381,11 +379,11 @@ def main(page: ft.Page):
                             content=ft.Row(
                                 [
                                     ft.FilledButton(
-                                        text='Set Analog Data',
+                                        'Set Analog Data',
                                         on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
                                     ),
                                     ft.ElevatedButton(
-                                        text='Reset All Pins',
+                                        'Reset All Pins',
                                         on_click=ao_pins_reset_clicked,
                                         style=ft.ButtonStyle(
                                             bgcolor=ft.colors.SECONDARY_CONTAINER
@@ -398,7 +396,7 @@ def main(page: ft.Page):
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
             ),
-            card(container_padding, card_elevation,
+            card(obj=
                 ft.Column(
                     [
                         ft.Container(
@@ -425,14 +423,14 @@ def main(page: ft.Page):
                             content=ft.Row(
                                 [
                                     ft.FilledButton(
-                                        text='Set Digital Data',
+                                        'Set Digital Data',
                                         on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
                                         style=ft.ButtonStyle(
                                             bgcolor=ft.colors.SECONDARY_CONTAINER,
                                         )
                                     ),
                                     ft.ElevatedButton(
-                                        text='Toggle All Pins',
+                                        'Toggle All Pins',
                                         on_click=do_pins_all_clicked,
                                         style=ft.ButtonStyle(
                                             bgcolor=ft.colors.SECONDARY_CONTAINER
@@ -474,64 +472,83 @@ def main(page: ft.Page):
     )
 
     '''Settings Tab'''
-    settings_tab = ft.Tabs(
-        selected_index=0,
-        animation_duration=300,
-        tabs=[
-            ft.Tab(
-                text='General',
-                icon=ft.icons.SETTINGS,
-                content=ft.Container(
-                    content=result_table(10), alignment=ft.alignment.center
-                ),
-            ),
-            ft.Tab(
-                text='Network',
-                icon=ft.icons.CABLE,
-                content=ft.Column(
+    # settings_tab = ft.Tabs(
+    #     selected_index=0,
+    #     animation_duration=300,
+    #     tabs=[
+    #         ft.Tab(
+    #             text='General',
+    #             icon=ft.icons.SETTINGS,
+    #             content=ft.Container(
+    #                 content=result_table(10), alignment=ft.alignment.center
+    #             ),
+    #         ),
+    #         ft.Tab(
+    #             text='Network',
+    #             icon=ft.icons.CABLE,
+    #             content=ft.Column(
+    #                 [
+    #                     ft.Container(
+    #                         ft.Column(
+    #                             [
+    #                                 zt_token,
+    #                                 zt_net_id,
+    #                             ],
+    #                         ),
+    #                         padding=container_padding,
+    #                     )
+    #                 ],
+    #                 alignment=ft.MainAxisAlignment.START,
+    #             ),
+    #         ),
+    #     ],
+    #     expand=1,
+    # )
+
+    settings_menu = ft.Row(
+        [
+            card(obj=
+                ft.Column(
                     [
-                        ft.Container(
-                            ft.Column(
-                                [
-                                    zt_token,
-                                    zt_net_id,
-                                ],
-                            ),
-                            padding=container_padding,
+                        zt_net_id,
+                        zt_token,
+                        ft.FilledButton(
+                            'Save',
+                            on_click=save_button_clicked
                         )
                     ],
-                    alignment=ft.MainAxisAlignment.START,
-                ),
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                )
             ),
+            
         ],
-        expand=1,
+        wrap=True
     )
 
-    '''AppBar Menu'''
-    appbar = ft.AppBar(
-        leading=ft.IconButton(ft.icons.HOME, on_click=lambda e: page.go('/')),
-        leading_width=40,
-        title=ft.Text("RemoteDAQ Dashboard"),
-        center_title=False,
-        bgcolor=ft.colors.SURFACE_VARIANT,
-        elevation=card_elevation,
-        actions=[
-            # ft.IconButton(ft.icons.HOME),
-            ft.IconButton(ft.icons.SETTINGS, on_click=lambda e: page.go('/settings')),
-        ],
-    )
+    # '''AppBar Menu'''
+    # appbar = ft.AppBar(
+    #     leading=ft.IconButton(ft.icons.HOME, on_click=lambda e: page.go('/')),
+    #     leading_width=40,
+    #     title=ft.Text("RemoteDAQ Dashboard"),
+    #     center_title=False,
+    #     bgcolor=ft.colors.SURFACE_VARIANT,
+    #     elevation=card_elevation,
+    #     actions=[
+    #         # ft.IconButton(ft.icons.HOME),
+    #         ft.IconButton(ft.icons.SETTINGS, on_click=lambda e: page.go('/settings')),
+    #     ],
+    # )
 
-    '''Floating Action Button'''
-    fab = ft.FloatingActionButton(
-        icon=ft.icons.ADD
-    )
+    # '''Floating Action Button'''
+    # fab = ft.FloatingActionButton(
+    #     icon=ft.icons.ADD
+    # )
 
     '''Navigation Menu'''
     rail = ft.NavigationRail(
         label_type=ft.NavigationRailLabelType.ALL,
         selected_index=0,
         min_width=100,
-        min_extended_width=400,
         leading=ft.FloatingActionButton(icon=ft.icons.ADD, text='Add'),
         group_alignment=-0.9,
         destinations=[
@@ -592,12 +609,16 @@ def main(page: ft.Page):
                             [
                                 rail,
                                 ft.VerticalDivider(width=1),
-                                settings_tab,
-                                ft.ElevatedButton(
-                                    'Save',
-                                    on_click=save_button_clicked
+                                ft.Column(
+                                    [
+                                        settings_menu
+                                    ],
+                                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                    scroll=ft.ScrollMode.ADAPTIVE,
+                                    expand=True
                                 )
                             ],
+                            vertical_alignment=ft.CrossAxisAlignment.START,
                             expand=True,
                         ),
                     ],
