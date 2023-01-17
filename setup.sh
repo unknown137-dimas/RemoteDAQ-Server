@@ -13,6 +13,6 @@ else
     
     #Deploy
     touch settings.json
-    docker volume create --name=influxdb-data
-    docker-compose up -d
+    sudo docker volume create --name=influxdb-data
+    sudo docker-compose up -d
 fi
