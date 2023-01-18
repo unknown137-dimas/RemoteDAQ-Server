@@ -25,11 +25,13 @@ async def api_request(url, payload=None, headers={}) -> dict:
 
 '''Card Class'''
 class card(ft.UserControl):
-    def __init__(self, container_padding=15, card_elevation=5, obj=None):
+    def __init__(self, container_padding=15, card_elevation=5, obj=None, height=580, width=300):
         super().__init__()
         self.container_padding = container_padding
         self.card_elevation = card_elevation
         self.obj = obj
+        self.height = height
+        self.width = width
     
     def build(self):
         return ft.Card(    
@@ -39,8 +41,8 @@ class card(ft.UserControl):
             ),
             elevation=self.card_elevation,
             col={'sm': 3, 'md': 4, 'xl': 3},
-            height=580,
-            width=300,
+            height=self.height,
+            width=self.width,
         )
 
 '''Result Table Class'''
@@ -74,7 +76,7 @@ def main(page: ft.Page):
     '''Init'''
     theme = ft.Theme()
     theme.color_scheme_seed = 'green'
-    theme.page_transitions.windows = ft.PageTransitionTheme.NONE
+    theme.page_transitions.windows = ft.PageTransitionTheme.CUPERTINO
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
@@ -95,13 +97,17 @@ def main(page: ft.Page):
     doi_result_table = result_table(8)
 
     '''Text Field Instance'''
-    zt_token = ft.TextField(label='ZeroTier Token')
     zt_net_id = ft.TextField(label='Network ID')
+    zt_token = ft.TextField(label='ZeroTier Token')
+    start_date = ft.TextField(label='Start Date', expand=1)
+    end_date = ft.TextField(label='End Date', expand=1)
 
-    '''Node Dropdown'''
+    '''Dropdown Instance'''
     node_dropdown = ft.Dropdown(
         label='RemoteDAQ Node',
-        width=200,
+    )
+    data_type_dropdown = ft.Dropdown(
+        label='Data Type',
     )
 
     '''Get Node List Function'''
@@ -479,15 +485,24 @@ def main(page: ft.Page):
             card(obj=
                 ft.Column(
                     [
-                        zt_net_id,
-                        zt_token,
+                        node_dropdown,
+                        data_type_dropdown,
+                        ft.Container(
+                            ft.Row(
+                                [start_date, end_date],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                vertical_alignment=ft.CrossAxisAlignment.START,
+                            ),
+                            expand=True
+                        ),
                         ft.FilledButton(
                             'Downloads',
                             on_click=lambda: print('Downloading...')
                         )
                     ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
-                )
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    expand=True
+                ),
             ),
             
         ],
@@ -536,7 +551,8 @@ def main(page: ft.Page):
     rail = ft.NavigationRail(
         label_type=ft.NavigationRailLabelType.ALL,
         selected_index=0,
-        min_width=100,
+        width=100,
+        height=400,
         leading=ft.FloatingActionButton(icon=ft.icons.ADD, text='Add'),
         group_alignment=-0.9,
         destinations=[
@@ -562,113 +578,71 @@ def main(page: ft.Page):
             ),
         ],
         on_change=lambda e: page.go(nav[e.control.selected_index]),
-    )    
+    )
+
+
+    view = ft.Row(expand=True)
+    active_view = ft.Row(
+        [rail, view],
+        vertical_alignment=ft.CrossAxisAlignment.START,
+        expand=True
+    )
 
     '''Page View Route Function'''
     def route_change(route):
         route_data = route.data
         rail.selected_index = nav.index(route_data)
-        page.views.clear()
+        view.controls.clear()
         if route_data == '/':
             '''/ Route'''
-            page.views.append(
-                ft.View(
-                    '/',
+            view.controls.append(
+                ft.Column(
                     [
-                        ft.Row(
-                            [
-                                rail,
-                                ft.VerticalDivider(width=1),
-                                ft.Column(
-                                    [
-                                        node_dropdown,
-                                        main_tab,
-                                    ],
-                                    expand=True
-                                ),
-                            ],
-                            expand=True,
-                        ),
+                        node_dropdown,
+                        main_tab,
                     ],
-                    appbar=appbar,
-                    floating_action_button=fab,
-                )
+                    expand=True
+                ),
             )
         if route_data == '/downloads':
             '''/downloads Route'''
-            page.views.append(
-                ft.View(
-                    '/downloads',
+            view.controls.append(
+                ft.Column(
                     [
-                        ft.Row(
-                            [
-                                rail,
-                                ft.VerticalDivider(width=1),
-                                ft.Column(
-                                    [
-                                        downloads_menu
-                                    ],
-                                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                                    scroll=ft.ScrollMode.ADAPTIVE,
-                                    expand=True
-                                )
-                            ],
-                            vertical_alignment=ft.CrossAxisAlignment.START,
-                            expand=True,
-                        ),
+                        downloads_menu
                     ],
-                    appbar=appbar,
-                    floating_action_button=fab,
-                )
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    scroll=ft.ScrollMode.ADAPTIVE,
+                    expand=True
+                ),
             )
         if route_data == '/settings':
             '''/settings Route'''
-            page.views.append(
-                ft.View(
-                    '/settings',
+            view.controls.append(
+                ft.Column(
                     [
-                        ft.Row(
-                            [
-                                rail,
-                                ft.VerticalDivider(width=1),
-                                ft.Column(
-                                    [
-                                        settings_menu
-                                    ],
-                                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                                    scroll=ft.ScrollMode.ADAPTIVE,
-                                    expand=True
-                                )
-                            ],
-                            vertical_alignment=ft.CrossAxisAlignment.START,
-                            expand=True,
-                        ),
+                        settings_menu
                     ],
-                    appbar=appbar,
-                    floating_action_button=fab,
-                )
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    scroll=ft.ScrollMode.ADAPTIVE,
+                    expand=True
+                ),
             )
         if route_data == '/about':
             '''/about Route'''
-            page.views.append(
-                ft.View(
-                    '/about',
+            view.controls.append(
+                ft.Column(
                     [
-                        ft.Row(
-                            [
-                                rail,
-                                ft.VerticalDivider(width=1),
-                                ft.Column([ ft.Text('Made with 💖 by Dimas Fitrio Kurniawan')], alignment=ft.MainAxisAlignment.START, expand=True),
-                            ],
-                            expand=True,
-                        ),
+                        ft.Text('Made with 💖 by Dimas Fitrio Kurniawan')
                     ],
-                    appbar=appbar,
-                    floating_action_button=fab,
-                )
+                    alignment=ft.MainAxisAlignment.START,
+                    expand=True
+                ),
             )
         page.update()
 
+    page.appbar = appbar
+    page.add(active_view)
     page.on_route_change = route_change
     page.go(page.route)
 
