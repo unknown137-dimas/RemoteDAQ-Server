@@ -2,7 +2,7 @@ import flet as ft
 import aiohttp
 import json
 import asyncio
-from os.path import exists
+from os.path import exists, getsize
 from os import getenv
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -144,14 +144,12 @@ def main(page: ft.Page):
 
     '''Load Settings Function'''
     def load_settings_file():
-        if exists('settings.json'):
+        if exists('settings.json') and getsize('settings.json') > 0:
             with open('settings.json', 'r') as settings_file:
                 if settings_file:
                     settings = json.loads(settings_file.readline())
                     zt_token.value = settings['zt_token']
                     zt_net_id.value = settings['zt_net_id']
-        else:
-            save_settings_file()
     load_settings_file()
 
     '''Save Button Function'''
