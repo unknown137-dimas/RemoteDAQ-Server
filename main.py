@@ -580,7 +580,7 @@ def main(page: ft.Page):
         on_change=lambda e: page.go(nav[e.control.selected_index]),
     )
 
-
+    '''App View'''
     view = ft.Row(expand=True)
     active_view = ft.Row(
         [rail, ft.VerticalDivider(), view],
