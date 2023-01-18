@@ -78,11 +78,15 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
-    nav = ['/', '/settings', '/about']
+    nav = ['/', '/downloads', '/settings', '/about']
 
     '''Alert Dialog'''
-    def dialog(text):
-        page.dialog = ft.AlertDialog(title=ft.Text(text))
+    def dialog(text, content=None, actions=None):
+        page.dialog = ft.AlertDialog(
+            title=ft.Text(text),
+            content=content,
+            actions=actions
+        )
         page.dialog.open = True
 
     '''Result Table Instance'''
@@ -469,40 +473,28 @@ def main(page: ft.Page):
         expand=1,
     )
 
-    '''Settings Tab'''
-    # settings_tab = ft.Tabs(
-    #     selected_index=0,
-    #     animation_duration=300,
-    #     tabs=[
-    #         ft.Tab(
-    #             text='General',
-    #             icon=ft.icons.SETTINGS,
-    #             content=ft.Container(
-    #                 content=result_table(10), alignment=ft.alignment.center
-    #             ),
-    #         ),
-    #         ft.Tab(
-    #             text='Network',
-    #             icon=ft.icons.CABLE,
-    #             content=ft.Column(
-    #                 [
-    #                     ft.Container(
-    #                         ft.Column(
-    #                             [
-    #                                 zt_token,
-    #                                 zt_net_id,
-    #                             ],
-    #                         ),
-    #                         padding=container_padding,
-    #                     )
-    #                 ],
-    #                 alignment=ft.MainAxisAlignment.START,
-    #             ),
-    #         ),
-    #     ],
-    #     expand=1,
-    # )
+    '''Downloads Menu'''
+    downloads_menu = ft.Row(
+        [
+            card(obj=
+                ft.Column(
+                    [
+                        zt_net_id,
+                        zt_token,
+                        ft.FilledButton(
+                            'Downloads',
+                            on_click=lambda: print('Downloading...')
+                        )
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                )
+            ),
+            
+        ],
+        wrap=True
+    )
 
+    '''Settings Menu'''
     settings_menu = ft.Row(
         [
             card(obj=
@@ -523,24 +515,22 @@ def main(page: ft.Page):
         wrap=True
     )
 
-    # '''AppBar Menu'''
-    # appbar = ft.AppBar(
-    #     leading=ft.IconButton(ft.icons.HOME, on_click=lambda e: page.go('/')),
-    #     leading_width=40,
-    #     title=ft.Text("RemoteDAQ Dashboard"),
-    #     center_title=False,
-    #     bgcolor=ft.colors.SURFACE_VARIANT,
-    #     elevation=card_elevation,
-    #     actions=[
-    #         # ft.IconButton(ft.icons.HOME),
-    #         ft.IconButton(ft.icons.SETTINGS, on_click=lambda e: page.go('/settings')),
-    #     ],
-    # )
-
-    # '''Floating Action Button'''
-    # fab = ft.FloatingActionButton(
-    #     icon=ft.icons.ADD
-    # )
+    '''AppBar Menu'''
+    appbar = ft.AppBar(
+        leading=ft.IconButton(ft.icons.HOME, on_click=lambda e: page.go('/')),
+        leading_width=40,
+        title=ft.Text("RemoteDAQ Dashboard"),
+        center_title=True,
+        bgcolor=ft.colors.SURFACE_VARIANT,
+        actions=[
+            ft.IconButton(ft.icons.SETTINGS, on_click=lambda e: page.go('/settings')),
+            ft.IconButton(ft.icons.INFO, on_click=lambda e: page.go('/about')),
+        ],
+    )
+    '''Floating Action Button'''
+    fab = ft.FloatingActionButton(
+        icon=ft.icons.ADD
+    )
 
     '''Navigation Menu'''
     rail = ft.NavigationRail(
@@ -556,9 +546,14 @@ def main(page: ft.Page):
                 label='Home'
             ),
             ft.NavigationRailDestination(
+                icon=ft.icons.CLOUD_DOWNLOAD_OUTLINED,
+                selected_icon_content=ft.Icon(ft.icons.CLOUD_DOWNLOAD_SHARP),
+                label='Downloads',
+            ),
+            ft.NavigationRailDestination(
                 icon=ft.icons.SETTINGS_OUTLINED,
                 selected_icon_content=ft.Icon(ft.icons.SETTINGS),
-                label_content=ft.Text('Settings'),
+                label='Settings',
             ),
             ft.NavigationRailDestination(
                 icon_content=ft.Icon(ft.icons.INFO_OUTLINE),
@@ -595,6 +590,35 @@ def main(page: ft.Page):
                             expand=True,
                         ),
                     ],
+                    appbar=appbar,
+                    floating_action_button=fab,
+                )
+            )
+        if route_data == '/downloads':
+            '''/downloads Route'''
+            page.views.append(
+                ft.View(
+                    '/downloads',
+                    [
+                        ft.Row(
+                            [
+                                rail,
+                                ft.VerticalDivider(width=1),
+                                ft.Column(
+                                    [
+                                        downloads_menu
+                                    ],
+                                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                    scroll=ft.ScrollMode.ADAPTIVE,
+                                    expand=True
+                                )
+                            ],
+                            vertical_alignment=ft.CrossAxisAlignment.START,
+                            expand=True,
+                        ),
+                    ],
+                    appbar=appbar,
+                    floating_action_button=fab,
                 )
             )
         if route_data == '/settings':
@@ -620,6 +644,8 @@ def main(page: ft.Page):
                             expand=True,
                         ),
                     ],
+                    appbar=appbar,
+                    floating_action_button=fab,
                 )
             )
         if route_data == '/about':
@@ -637,18 +663,13 @@ def main(page: ft.Page):
                             expand=True,
                         ),
                     ],
+                    appbar=appbar,
+                    floating_action_button=fab,
                 )
             )
         page.update()
 
-    '''Remove Page View Function'''
-    def view_pop(view):
-        page.views.pop()
-        top_view = page.views[-1]
-        page.go(top_view.route)
-
     page.on_route_change = route_change
-    page.on_view_pop = view_pop
     page.go(page.route)
 
     '''Loop Subroutine'''
