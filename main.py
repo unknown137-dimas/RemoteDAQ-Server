@@ -12,8 +12,8 @@ async def api_request(url, payload=None, headers={}) -> dict:
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
             if payload:
-                data = json.dumps({'data' : payload})
-                async with session.put(url, data=data) as response:
+                value = json.dumps({'value' : payload})
+                async with session.put(url, data=value) as response:
                     return await response.json()
             else:
                 async with session.get(url) as response:
@@ -138,7 +138,7 @@ def main(page: ft.Page):
             if row.selected:
                 sel_pin = int(row.cells[0].content.value)
                 pin = api_response['data'][sel_pin]
-                row.cells[1].content.value = pin['data']
+                row.cells[1].content.value = pin['value']
             else:
                 row.cells[1].content.value = ''
         output_table.update()
