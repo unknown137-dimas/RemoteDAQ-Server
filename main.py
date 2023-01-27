@@ -80,7 +80,7 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
-    nav = ['/', '/downloads', '/settings', '/about']
+    nav = ['/', '/downloads', '/status', '/settings', '/about']
 
     '''Alert Dialog'''
     def dialog(text, content=None, actions=None):
@@ -532,16 +532,11 @@ def main(page: ft.Page):
 
     '''AppBar Menu'''
     appbar = ft.AppBar(
-        leading=ft.IconButton(ft.icons.HOME, on_click=lambda e: page.go('/')),
-        leading_width=40,
         title=ft.Text("RemoteDAQ Dashboard"),
         center_title=True,
         bgcolor=ft.colors.SURFACE_VARIANT,
-        actions=[
-            ft.IconButton(ft.icons.SETTINGS, on_click=lambda e: page.go('/settings')),
-            ft.IconButton(ft.icons.INFO, on_click=lambda e: page.go('/about')),
-        ],
     )
+
     '''Floating Action Button'''
     fab = ft.FloatingActionButton(
         icon=ft.icons.ADD
@@ -565,6 +560,11 @@ def main(page: ft.Page):
                 icon=ft.icons.CLOUD_DOWNLOAD_OUTLINED,
                 selected_icon_content=ft.Icon(ft.icons.CLOUD_DOWNLOAD_SHARP),
                 label='Downloads',
+            ),
+            ft.NavigationRailDestination(
+                icon=ft.icons.MONITOR_HEART_OUTLINED,
+                selected_icon_content=ft.Icon(ft.icons.MONITOR_HEART_SHARP),
+                label='Node Status',
             ),
             ft.NavigationRailDestination(
                 icon=ft.icons.SETTINGS_OUTLINED,
@@ -610,6 +610,18 @@ def main(page: ft.Page):
                 ft.Column(
                     [
                         downloads_menu
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    scroll=ft.ScrollMode.ADAPTIVE,
+                    expand=True
+                ),
+            )
+        if route_data == '/status':
+            '''/status Route'''
+            view.controls.append(
+                ft.Column(
+                    [
+                        
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     scroll=ft.ScrollMode.ADAPTIVE,
