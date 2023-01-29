@@ -61,7 +61,7 @@ class card(ft.UserControl):
 
 '''Result Table Class'''
 class result_table(ft.DataTable):
-    def __init__(self, row_headers, col_headers=['Pin', 'Value']):
+    def __init__(self, row_headers=0, col_headers=['Pin', 'Value']):
         self.col_headers = col_headers
         self.row_headers = row_headers
         super().__init__(
@@ -111,7 +111,7 @@ def main(page: ft.Page):
     ai_result_table =  result_table(8)
     di_result_table = result_table(8)
     doi_result_table = result_table(8)
-    node_result_table = result_table(8, col_headers=['Node', 'Status', 'Health'])
+    node_result_table = result_table(col_headers=['Node', 'Status', 'Health'])
 
     '''Text Field Instance'''
     zt_net_id = ft.TextField(label='Network ID')
