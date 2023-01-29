@@ -5,6 +5,7 @@ import asyncio
 from os.path import exists, getsize
 from os import getenv
 from apscheduler.schedulers.background import BackgroundScheduler
+from influxdb_client.client.influxdb_client import InfluxDBClient
 
 '''API Requests Function'''
 async def api_request(url, payload=None, headers={}) -> dict:
@@ -22,6 +23,19 @@ async def api_request(url, payload=None, headers={}) -> dict:
         return {'success':False, 'data':['Connection refused, check connection']}
     except aiohttp.ContentTypeError:
         return {'success':False, 'data':['Invalid token or network ID, please check again']}
+    
+'''DB Requests Function'''
+async def db_request():
+    url = 'http://127.0.0.1:8086/query?db=remote-data-acquisition' #FUTURE -> GET DB name from settings menu dynamically
+    headers = {'Accept' : 'application/csv'}
+    try:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.get(url) as response:
+                return await response.json()
+    except aiohttp.ClientConnectorError:
+        return {'success':False, 'data':['Connection refused, check connection']}
+    except aiohttp.ContentTypeError:
+        return {'success':False, 'data':['Invalid token, please check again']}
 
 '''Card Class'''
 class card(ft.UserControl):
@@ -47,24 +61,26 @@ class card(ft.UserControl):
 
 '''Result Table Class'''
 class result_table(ft.DataTable):
-    def __init__(self, pin_count):
-        self.pin_count = pin_count
+    def __init__(self, row_headers, col_headers=['Pin', 'Value']):
+        self.col_headers = col_headers
+        self.row_headers = row_headers
         super().__init__(
             border=ft.border.all(1, ft.colors.SECONDARY),
             border_radius=10,
             vertical_lines=ft.border.BorderSide(1, ft.colors.SECONDARY),
             show_checkbox_column=True,
             columns=[
-                ft.DataColumn(ft.Text('Pin')),
-                ft.DataColumn(ft.Text('Value'), numeric=True),
+                ft.DataColumn(ft.Text(i)) for i in self.col_headers
             ],
             rows=[
                 ft.DataRow(
-                    [ft.DataCell(ft.Text(str(i))), ft.DataCell(ft.Text(''))],
+                    [ft.DataCell(ft.Text('')) for _ in range(len(self.col_headers))],
                     on_select_changed=self.cell_selected,
-                ) for i in range(0, self.pin_count)
+                ) for _ in range(0, self.row_headers)
             ]
         )
+        for i in range(0, self.row_headers):
+            self.rows[i].cells[0].content.value = str(i)
 
     '''Result Table Checkbox Function'''
     def cell_selected(self, e):
@@ -95,6 +111,7 @@ def main(page: ft.Page):
     ai_result_table =  result_table(8)
     di_result_table = result_table(8)
     doi_result_table = result_table(8)
+    node_result_table = result_table(8, col_headers=['Node', 'Status', 'Health'])
 
     '''Text Field Instance'''
     zt_net_id = ft.TextField(label='Network ID')
@@ -112,18 +129,20 @@ def main(page: ft.Page):
 
     '''Get Node List Function'''
     def get_node_list():
-        url = 'https://api.zerotier.com/api/v1/network/' + str(zt_net_id.value) + '/member'
-        headers = {'Authorization' : 'Bearer ' + str(zt_token.value)}
-        try:
-            result = asyncio.run(api_request(url, headers=headers))
-            result = [r['config']['ipAssignments'][0] for r in result if r['nodeId'] != getenv('ZT_ID') and r['online']]
-        except TypeError:
-            result = []
+        result = []
+        if zt_net_id.value and zt_token.value:
+            url = 'https://api.zerotier.com/api/v1/network/' + str(zt_net_id.value) + '/member'
+            headers = {'Authorization' : 'Bearer ' + str(zt_token.value)}
+            try:
+                result = asyncio.run(api_request(url, headers=headers))
+                result = [r['config']['ipAssignments'][0] for r in result if r['nodeId'] != getenv('ZT_ID') and r['online']]
+            except TypeError:
+                pass
         return result
     
     '''Update Node Dropdown Function'''
     def update_node_dropdown():
-        if exists('settings.json'):
+        if exists('settings.json') and getsize('settings.json') > 0:
             new_node_list = get_node_list()
             node_dropdown_options = [opt.key for opt in node_dropdown.options]
             if node_dropdown_options != new_node_list:
@@ -509,6 +528,24 @@ def main(page: ft.Page):
         wrap=True
     )
 
+    '''Status Menu'''
+    status_menu = ft.Row(
+        [
+            card(obj=
+                ft.Column(
+                    [
+                        node_result_table
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    expand=True
+                ),
+                width=400
+            ),
+            
+        ],
+        wrap=True
+    )
+
     '''Settings Menu'''
     settings_menu = ft.Row(
         [
@@ -621,7 +658,7 @@ def main(page: ft.Page):
             view.controls.append(
                 ft.Column(
                     [
-                        
+                        status_menu
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     scroll=ft.ScrollMode.ADAPTIVE,
