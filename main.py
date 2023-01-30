@@ -111,7 +111,7 @@ def main(page: ft.Page):
     ai_result_table =  result_table(8)
     di_result_table = result_table(8)
     doi_result_table = result_table(8)
-    node_result_table = result_table(col_headers=['Node', 'Status', 'Health'])
+    node_result_table = result_table(col_headers=['Node Name', 'IP Address', 'Status', 'Health'])
 
     '''Text Field Instance'''
     zt_net_id = ft.TextField(label='Network ID')
@@ -136,20 +136,32 @@ def main(page: ft.Page):
     
     '''Update Node Dropdown Function'''
     def update_node_dropdown():
-        if exists('settings.json') and getsize('settings.json') > 0:
+        if exists('settings.json') and getsize('settings.json') > 0 and page.route == '/':
             new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != getenv('ZT_ID') and r['online']]
             node_dropdown_options = [opt.key for opt in node_dropdown.options]
             if node_dropdown_options != new_node_list:
                 node_dropdown.options.clear()
                 for node in new_node_list:
                     node_dropdown.options.append(ft.dropdown.Option(node))
-                    page.update()
+                page.update()
 
     '''Update Node Status Table Function'''
     def update_status_table():
-        if exists('settings.json') and getsize('settings.json') > 0:
+        if exists('settings.json') and getsize('settings.json') > 0 and page.route == '/status':
             new_node_list = [r for r in get_node_list() if r['nodeId'] != getenv('ZT_ID')]
-            page.update()
+            node_result_table.rows.clear()
+            for n in new_node_list:
+                node_result_table.rows.append(
+                    ft.DataRow(
+                        [
+                            ft.DataCell(ft.Text(n['name'])),
+                            ft.DataCell(ft.Text(n['config']['ipAssignments'][0])),
+                            ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['online'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
+                            ft.DataCell(ft.Text(''))
+                        ]
+                    )
+                )
+            node_result_table.update()
 
     '''Parse Data Function'''
     def parse_data(api_response, output_table):
@@ -239,11 +251,9 @@ def main(page: ft.Page):
     def check_ao_value(e):
         value = e.control.value
         if value and float(value) > 5:
-            e.control.border_color = ft.colors.RED
-            e.control.helper_text = 'Invalid value'
+            e.control.error_text = 'Invalid value'
         else:
-            e.control.border_color = ft.colors.PRIMARY
-            e.control.helper_text = 'Valid range is 0 - 5 Volt'
+            e.control.error_text = ''
         e.control.update()
 
     '''Reset All AO Pins Function'''
@@ -509,7 +519,7 @@ def main(page: ft.Page):
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     expand=True
                 ),
-                width=400
+                width=550
             ),
             
         ],
