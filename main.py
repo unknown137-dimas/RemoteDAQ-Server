@@ -584,7 +584,7 @@ def main(page: ft.Page):
         label_type=ft.NavigationRailLabelType.ALL,
         selected_index=0,
         width=100,
-        height=400,
+        height=page.height,
         leading=ft.FloatingActionButton(icon=ft.icons.ADD, text='Add'),
         group_alignment=-0.9,
         destinations=[
