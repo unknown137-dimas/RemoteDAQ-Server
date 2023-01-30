@@ -251,8 +251,10 @@ def main(page: ft.Page):
     def check_ao_value(e):
         value = e.control.value
         if value and float(value) > 5:
+            e.control.color = ft.colors.RED
             e.control.error_text = 'Invalid value'
         else:
+            e.control.color = ft.colors.PRIMARY
             e.control.error_text = ''
         e.control.update()
 
@@ -268,13 +270,15 @@ def main(page: ft.Page):
         label='AO Pin 0',
         suffix_text='Volt',
         on_change=check_ao_value,
-        helper_text='Valid range is 0 - 5 Volt'
+        helper_text='Valid range is 0 - 5 Volt',
+        error_style=ft.TextStyle(color=ft.colors.RED)
         )
     ao_pin_1 = ft.TextField(
         label='AO Pin 1',
         suffix_text='Volt',
         on_change=check_ao_value,
-        helper_text='Valid range is 0 - 5 Volt'
+        helper_text='Valid range is 0 - 5 Volt',
+        error_style=ft.TextStyle(color=ft.colors.RED)
         )
     
     '''Toggle All DO Pins Function'''
