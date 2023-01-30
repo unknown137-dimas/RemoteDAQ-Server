@@ -111,7 +111,7 @@ def main(page: ft.Page):
     ai_result_table =  result_table(8)
     di_result_table = result_table(8)
     doi_result_table = result_table(8)
-    node_result_table = result_table(col_headers=['Node Name', 'IP Address', 'Status', 'Health'])
+    node_result_table = result_table(col_headers=['Node Name', 'IP Address', 'Online', 'Health'])
 
     '''Text Field Instance'''
     zt_net_id = ft.TextField(label='Network ID')
