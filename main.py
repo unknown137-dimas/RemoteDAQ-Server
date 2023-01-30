@@ -96,7 +96,7 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
-    nav = ['/', '/downloads', '/status', '/settings', '/about']
+    nav = ['/', '/status', '/settings', '/about']
 
     '''Alert Dialog'''
     def dialog(text, content=None, actions=None):
@@ -116,15 +116,10 @@ def main(page: ft.Page):
     '''Text Field Instance'''
     zt_net_id = ft.TextField(label='Network ID')
     zt_token = ft.TextField(label='ZeroTier Token')
-    start_date = ft.TextField(label='Start Date', expand=1)
-    end_date = ft.TextField(label='End Date', expand=1)
 
     '''Dropdown Instance'''
     node_dropdown = ft.Dropdown(
         label='RemoteDAQ Node',
-    )
-    data_type_dropdown = ft.Dropdown(
-        label='Data Type',
     )
 
     '''Get Node List Function'''
@@ -135,7 +130,6 @@ def main(page: ft.Page):
             headers = {'Authorization' : 'Bearer ' + str(zt_token.value)}
             try:
                 result = asyncio.run(api_request(url, headers=headers))
-                result = [r['config']['ipAssignments'][0] for r in result if r['nodeId'] != getenv('ZT_ID') and r['online']]
             except TypeError:
                 pass
         return result
@@ -143,13 +137,19 @@ def main(page: ft.Page):
     '''Update Node Dropdown Function'''
     def update_node_dropdown():
         if exists('settings.json') and getsize('settings.json') > 0:
-            new_node_list = get_node_list()
+            new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != getenv('ZT_ID') and r['online']]
             node_dropdown_options = [opt.key for opt in node_dropdown.options]
             if node_dropdown_options != new_node_list:
                 node_dropdown.options.clear()
                 for node in new_node_list:
                     node_dropdown.options.append(ft.dropdown.Option(node))
                     page.update()
+
+    '''Update Node Status Table Function'''
+    def update_status_table():
+        if exists('settings.json') and getsize('settings.json') > 0:
+            new_node_list = [r for r in get_node_list() if r['nodeId'] != getenv('ZT_ID')]
+            page.update()
 
     '''Parse Data Function'''
     def parse_data(api_response, output_table):
@@ -189,8 +189,8 @@ def main(page: ft.Page):
 
     '''DAQ Function'''
     def daq(endpoint, result_table=None, daq_pin_values=None):
-        selected_node = node_dropdown.value
-        url = 'http://' + str(selected_node) + ':8000' + endpoint
+        selected_node = str(node_dropdown.value).split(' | ')[1]
+        url = 'http://' + selected_node + ':8000' + endpoint
         if selected_node:
             if result_table:
                 daq_pins = [row.cells[0].content.value for row in result_table.rows if row.selected]
@@ -498,36 +498,6 @@ def main(page: ft.Page):
         expand=1,
     )
 
-    '''Downloads Menu'''
-    downloads_menu = ft.Row(
-        [
-            card(obj=
-                ft.Column(
-                    [
-                        node_dropdown,
-                        data_type_dropdown,
-                        ft.Container(
-                            ft.Row(
-                                [start_date, end_date],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                vertical_alignment=ft.CrossAxisAlignment.START,
-                            ),
-                            expand=True
-                        ),
-                        ft.FilledButton(
-                            'Downloads',
-                            on_click=lambda: print('Downloading...')
-                        )
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    expand=True
-                ),
-            ),
-            
-        ],
-        wrap=True
-    )
-
     '''Status Menu'''
     status_menu = ft.Row(
         [
@@ -594,11 +564,6 @@ def main(page: ft.Page):
                 label='Home'
             ),
             ft.NavigationRailDestination(
-                icon=ft.icons.CLOUD_DOWNLOAD_OUTLINED,
-                selected_icon_content=ft.Icon(ft.icons.CLOUD_DOWNLOAD_SHARP),
-                label='Downloads',
-            ),
-            ft.NavigationRailDestination(
                 icon=ft.icons.MONITOR_HEART_OUTLINED,
                 selected_icon_content=ft.Icon(ft.icons.MONITOR_HEART_SHARP),
                 label='Node Status',
@@ -638,18 +603,6 @@ def main(page: ft.Page):
                         node_dropdown,
                         main_tab,
                     ],
-                    expand=True
-                ),
-            )
-        if route_data == '/downloads':
-            '''/downloads Route'''
-            view.controls.append(
-                ft.Column(
-                    [
-                        downloads_menu
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    scroll=ft.ScrollMode.ADAPTIVE,
                     expand=True
                 ),
             )
@@ -698,6 +651,7 @@ def main(page: ft.Page):
     '''Loop Subroutine'''
     sched = BackgroundScheduler()
     sched.add_job(update_node_dropdown, 'interval', seconds=3)
+    sched.add_job(update_status_table, 'interval', seconds=3)
     sched.start()
 
 if __name__ == '__main__':
