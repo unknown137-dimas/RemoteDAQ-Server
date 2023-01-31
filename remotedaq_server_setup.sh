@@ -4,8 +4,8 @@
 read -p 'Input ZeroTier network ID: ' ztid
 read -p 'Input DB username: ' dbuser
 read -sp 'Input DB password: ' dbpass
-read -p 'Input DB Org Name: ' dborg
-read -p 'Input DB bucket Name: ' dbbucket
+read -p 'Input DB org name: ' dborg
+read -p 'Input DB bucket name: ' dbbucket
 
 #Update Helper Scripts Permission
 chmod +x scripts/*
