@@ -1,21 +1,14 @@
 #!/bin/bash
 
-#User Input
-read -p 'Input ZeroTier network ID: ' ztid
-read -p 'Input DB username: ' dbuser
-read -sp 'Input DB password: ' dbpass
-read -p 'Input DB Org Name: ' dborg
-read -p 'Input DB bucket Name: ' dbbucket
-
 #Join Zerotier Network
-sudo zerotier-cli join $ztid
+sudo zerotier-cli join $1
 
 #Populate .env File
 echo ZT_ID=$(sudo zerotier-cli info | cut -d ' ' -f 3) >> .env
-echo DOCKER_INFLUXDB_INIT_USERNAME=$dbuser >> .env
-echo DOCKER_INFLUXDB_INIT_PASSWORD=$dbpass >> .env
-echo DOCKER_INFLUXDB_INIT_ORG=$dborg >> .env
-echo DOCKER_INFLUXDB_INIT_BUCKET=$dbbucket >> .env
+echo DOCKER_INFLUXDB_INIT_USERNAME=$2 >> .env
+echo DOCKER_INFLUXDB_INIT_PASSWORD=$3 >> .env
+echo DOCKER_INFLUXDB_INIT_ORG=$4 >> .env
+echo DOCKER_INFLUXDB_INIT_BUCKET=$5 >> .env
 
 #Deploy
 touch settings.json
