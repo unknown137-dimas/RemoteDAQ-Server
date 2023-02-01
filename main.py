@@ -566,7 +566,6 @@ def main(page: ft.Page):
     '''Navigation Menu'''
     rail = ft.NavigationRail(
         label_type=ft.NavigationRailLabelType.ALL,
-        selected_index=0,
         width=100,
         height=page.height,
         leading=ft.FloatingActionButton(icon=ft.icons.ADD, text='Add'),
@@ -598,7 +597,6 @@ def main(page: ft.Page):
 
     '''Navigation Bar'''
     navbar = ft.NavigationBar(
-        selected_index=rail.selected_index,
         destinations=[
             ft.NavigationDestination(
                 icon_content=ft.Icon(ft.icons.HOME_OUTLINED),
@@ -637,6 +635,7 @@ def main(page: ft.Page):
     def route_change(route):
         route_data = route.data
         rail.selected_index = nav.index(route_data)
+        navbar.selected_index = nav.index(route_data)
         view.controls.clear()
         if route_data == '/':
             '''/ Route'''
