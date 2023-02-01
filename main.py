@@ -560,7 +560,8 @@ def main(page: ft.Page):
 
     '''Floating Action Button'''
     fab = ft.FloatingActionButton(
-        icon=ft.icons.ADD
+        icon=ft.icons.ADD,
+        visible=False
     )
 
     '''Navigation Menu'''
@@ -620,6 +621,7 @@ def main(page: ft.Page):
             ),
         ],
         on_change=lambda e: page.go(nav[e.control.selected_index]),
+        visible=False
     )
 
     '''App View'''
@@ -687,7 +689,7 @@ def main(page: ft.Page):
     
     '''Page Resize Function'''
     def page_resize(e):
-        if e.control.width < 600:
+        if page.width < 600:
             rail.visible = False
             divider.visible = False
             fab.visible = True
@@ -698,6 +700,7 @@ def main(page: ft.Page):
             fab.visible = False
             navbar.visible = False
         page.update()
+    page_resize('')
 
     page.appbar = appbar
     page.floating_action_button = fab
