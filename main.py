@@ -527,7 +527,7 @@ def main(page: ft.Page):
             ),
             
         ],
-        wrap=True
+        scroll=ft.ScrollMode.ADAPTIVE,
     )
 
     '''Settings Menu'''
@@ -573,17 +573,17 @@ def main(page: ft.Page):
         group_alignment=-0.9,
         destinations=[
             ft.NavigationRailDestination(
-                icon=ft.icons.HOME_OUTLINED,
-                selected_icon=ft.icons.HOME,
+                icon_content=ft.Icon(ft.icons.HOME_OUTLINED),
+                selected_icon_content=ft.Icon(ft.icons.HOME),
                 label='Home'
             ),
             ft.NavigationRailDestination(
-                icon=ft.icons.MONITOR_HEART_OUTLINED,
+                icon_content=ft.Icon(ft.icons.MONITOR_HEART_OUTLINED),
                 selected_icon_content=ft.Icon(ft.icons.MONITOR_HEART_SHARP),
                 label='Node Status',
             ),
             ft.NavigationRailDestination(
-                icon=ft.icons.SETTINGS_OUTLINED,
+                icon_content=ft.Icon(ft.icons.SETTINGS_OUTLINED),
                 selected_icon_content=ft.Icon(ft.icons.SETTINGS),
                 label='Settings',
             ),
@@ -596,10 +596,39 @@ def main(page: ft.Page):
         on_change=lambda e: page.go(nav[e.control.selected_index]),
     )
 
+    '''Navigation Bar'''
+    navbar = ft.NavigationBar(
+        selected_index=rail.selected_index,
+        destinations=[
+            ft.NavigationDestination(
+                icon_content=ft.Icon(ft.icons.HOME_OUTLINED),
+                selected_icon_content=ft.Icon(ft.icons.HOME),
+                label='Home'
+            ),
+            ft.NavigationDestination(
+                icon_content=ft.Icon(ft.icons.MONITOR_HEART_OUTLINED),
+                selected_icon_content=ft.Icon(ft.icons.MONITOR_HEART_SHARP),
+                label='Node Status',
+            ),
+            ft.NavigationDestination(
+                icon_content=ft.Icon(ft.icons.SETTINGS_OUTLINED),
+                selected_icon_content=ft.Icon(ft.icons.SETTINGS),
+                label='Settings',
+            ),
+            ft.NavigationDestination(
+                icon_content=ft.Icon(ft.icons.INFO_OUTLINE),
+                selected_icon_content=ft.Icon(ft.icons.INFO),
+                label='About',
+            ),
+        ],
+        on_change=lambda e: page.go(nav[e.control.selected_index]),
+    )
+
     '''App View'''
     view = ft.Row(expand=True)
+    divider = ft.VerticalDivider()
     active_view = ft.Row(
-        [rail, ft.VerticalDivider(), view],
+        [rail, divider, view],
         vertical_alignment=ft.CrossAxisAlignment.START,
         expand=True
     )
@@ -656,9 +685,26 @@ def main(page: ft.Page):
                 ),
             )
         page.update()
+    
+    '''Page Resize Function'''
+    def page_resize(e):
+        if e.control.width < 600:
+            rail.visible = False
+            divider.visible = False
+            fab.visible = True
+            navbar.visible = True
+        else:
+            rail.visible = True
+            divider.visible = True
+            fab.visible = False
+            navbar.visible = False
+        page.update()
 
     page.appbar = appbar
+    page.floating_action_button = fab
+    page.navigation_bar = navbar
     page.add(active_view)
+    page.on_resize = page_resize
     page.on_route_change = route_change
     page.go(page.route)
 
