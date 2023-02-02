@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #User Input
-read -p 'Input ZeroTier network ID: ' zt_id
+read -p 'Input ZeroTier network ID: ' zt_net_id
 read -p 'Input ZeroTier Token: ' zt_token
 read -p 'Input DB username: ' dbuser
 read -sp 'Input DB password: ' dbpass
@@ -13,4 +13,4 @@ chmod +x scripts/*
 
 #Run Helper Scripts
 ./scripts/install.sh
-./scripts/deploy.sh $zt_id $zt_token $dbuser $dbpass $dborg $dbbucket
+./scripts/deploy.sh $zt_net_id $zt_token $dbuser $dbpass $dborg $dbbucket
