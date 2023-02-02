@@ -4,8 +4,8 @@ import json
 import asyncio
 from os.path import exists, getsize
 from os import getenv
+from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
-from influxdb_client.client.influxdb_client import InfluxDBClient
 
 '''API Requests Function'''
 async def api_request(url, payload=None, headers={}) -> dict:
@@ -83,7 +83,10 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
-    nav = ['/', '/status', '/settings', '/about']
+    nav = ['/', '/status', '/about']
+    load_dotenv()
+    zt_net_id = str(getenv('ZT_NET_ID'))
+    zt_token = str(getenv('ZT_TOKEN'))
 
     '''Alert Dialog'''
     def dialog(text, content=None, actions=None):
@@ -100,9 +103,6 @@ def main(page: ft.Page):
     doi_result_table = result_table(8)
     node_result_table = result_table(col_headers=['Node Name', 'IP Address', 'Online', 'Health'])
 
-    '''Text Field Instance'''
-    zt_net_id = ft.TextField(label='Network ID')
-    zt_token = ft.TextField(label='ZeroTier Token')
 
     '''Dropdown Instance'''
     node_dropdown = ft.Dropdown(
@@ -112,9 +112,9 @@ def main(page: ft.Page):
     '''Get Node List Function'''
     def get_node_list():
         result = []
-        if zt_net_id.value and zt_token.value:
-            url = 'https://api.zerotier.com/api/v1/network/' + str(zt_net_id.value) + '/member'
-            headers = {'Authorization' : 'Bearer ' + str(zt_token.value)}
+        if zt_net_id and zt_token:
+            url = 'https://api.zerotier.com/api/v1/network/' + str(zt_net_id) + '/member'
+            headers = {'Authorization' : 'Bearer ' + str(zt_token)}
             try:
                 result = asyncio.run(api_request(url, headers=headers))
             except TypeError:
@@ -161,30 +161,6 @@ def main(page: ft.Page):
                 row.cells[1].content.value = ''
         output_table.update()
         return 'Success'
-
-    '''Save Settings Function'''
-    def save_settings_file():
-        settings = {}
-        settings['zt_token'] = zt_token.value
-        settings['zt_net_id'] = zt_net_id.value
-        with open('settings.json', 'w') as setings_file:
-                setings_file.write(json.dumps(settings))
-
-    '''Load Settings Function'''
-    def load_settings_file():
-        if exists('settings.json') and getsize('settings.json') > 0:
-            with open('settings.json', 'r') as settings_file:
-                if settings_file:
-                    settings = json.loads(settings_file.readline())
-                    zt_token.value = settings['zt_token']
-                    zt_net_id.value = settings['zt_net_id']
-    load_settings_file()
-
-    '''Save Button Function'''
-    def save_button_clicked(_):
-        save_settings_file()
-        dialog('Settings saved succesfully')
-        page.update()
 
     '''DAQ Function'''
     def daq(endpoint, result_table=None, daq_pin_values=None):
@@ -517,27 +493,6 @@ def main(page: ft.Page):
         scroll=ft.ScrollMode.ADAPTIVE,
     )
 
-    '''Settings Menu'''
-    settings_menu = ft.Row(
-        [
-            card(obj=
-                ft.Column(
-                    [
-                        zt_net_id,
-                        zt_token,
-                        ft.FilledButton(
-                            'Save',
-                            on_click=save_button_clicked
-                        )
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
-                )
-            ),
-            
-        ],
-        wrap=True
-    )
-
     '''AppBar Menu'''
     appbar = ft.AppBar(
         title=ft.Text("RemoteDAQ Dashboard"),
@@ -570,11 +525,6 @@ def main(page: ft.Page):
                 label='Node Status',
             ),
             ft.NavigationRailDestination(
-                icon_content=ft.Icon(ft.icons.SETTINGS_OUTLINED),
-                selected_icon_content=ft.Icon(ft.icons.SETTINGS),
-                label='Settings',
-            ),
-            ft.NavigationRailDestination(
                 icon_content=ft.Icon(ft.icons.INFO_OUTLINE),
                 selected_icon_content=ft.Icon(ft.icons.INFO),
                 label='About',
@@ -595,11 +545,6 @@ def main(page: ft.Page):
                 icon_content=ft.Icon(ft.icons.MONITOR_HEART_OUTLINED),
                 selected_icon_content=ft.Icon(ft.icons.MONITOR_HEART_SHARP),
                 label='Node Status',
-            ),
-            ft.NavigationDestination(
-                icon_content=ft.Icon(ft.icons.SETTINGS_OUTLINED),
-                selected_icon_content=ft.Icon(ft.icons.SETTINGS),
-                label='Settings',
             ),
             ft.NavigationDestination(
                 icon_content=ft.Icon(ft.icons.INFO_OUTLINE),
@@ -643,18 +588,6 @@ def main(page: ft.Page):
                 ft.Column(
                     [
                         status_menu
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    scroll=ft.ScrollMode.ADAPTIVE,
-                    expand=True
-                ),
-            )
-        if route_data == '/settings':
-            '''/settings Route'''
-            view.controls.append(
-                ft.Column(
-                    [
-                        settings_menu
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     scroll=ft.ScrollMode.ADAPTIVE,
