@@ -24,19 +24,6 @@ async def api_request(url, payload=None, headers={}) -> dict:
     except aiohttp.ContentTypeError:
         return {'success':False, 'data':['Invalid token or network ID, please check again']}
     
-'''DB Requests Function'''
-async def db_request():
-    url = 'http://127.0.0.1:8086/query?db=remote-data-acquisition' #FUTURE -> GET DB name from settings menu dynamically
-    headers = {'Accept' : 'application/csv'}
-    try:
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(url) as response:
-                return await response.json()
-    except aiohttp.ClientConnectorError:
-        return {'success':False, 'data':['Connection refused, check connection']}
-    except aiohttp.ContentTypeError:
-        return {'success':False, 'data':['Invalid token, please check again']}
-
 '''Card Class'''
 class card(ft.UserControl):
     def __init__(self, container_padding=15, card_elevation=5, obj=None, height=580, width=300):
