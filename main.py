@@ -2,7 +2,6 @@ import flet as ft
 import aiohttp
 import json
 import asyncio
-from os.path import exists, getsize
 from os import getenv
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -85,6 +84,7 @@ def main(page: ft.Page):
     page.title = 'RemoteDAQ Dashboard'
     nav = ['/', '/status', '/about']
     load_dotenv()
+    zt_id = str(getenv('ZT_ID'))
     zt_net_id = str(getenv('ZT_NET_ID'))
     zt_token = str(getenv('ZT_TOKEN'))
 
@@ -113,8 +113,8 @@ def main(page: ft.Page):
     def get_node_list():
         result = []
         if zt_net_id and zt_token:
-            url = 'https://api.zerotier.com/api/v1/network/' + str(zt_net_id) + '/member'
-            headers = {'Authorization' : 'Bearer ' + str(zt_token)}
+            url = 'https://api.zerotier.com/api/v1/network/' + zt_net_id + '/member'
+            headers = {'Authorization' : 'Bearer ' + zt_token}
             try:
                 result = asyncio.run(api_request(url, headers=headers))
             except TypeError:
@@ -123,8 +123,8 @@ def main(page: ft.Page):
     
     '''Update Node Dropdown Function'''
     def update_node_dropdown():
-        if exists('settings.json') and getsize('settings.json') > 0 and page.route == '/':
-            new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != getenv('ZT_ID') and r['online']]
+        if page.route == '/':
+            new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != zt_id and r['online']]
             node_dropdown_options = [opt.key for opt in node_dropdown.options]
             if node_dropdown_options != new_node_list:
                 node_dropdown.options.clear()
@@ -134,8 +134,8 @@ def main(page: ft.Page):
 
     '''Update Node Status Table Function'''
     def update_status_table():
-        if exists('settings.json') and getsize('settings.json') > 0 and page.route == '/status':
-            new_node_list = [r for r in get_node_list() if r['nodeId'] != getenv('ZT_ID')]
+        if page.route == '/status':
+            new_node_list = [r for r in get_node_list() if r['nodeId'] != zt_id]
             node_result_table.rows.clear()
             for n in new_node_list:
                 node_result_table.rows.append(
