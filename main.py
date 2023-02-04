@@ -103,7 +103,6 @@ def main(page: ft.Page):
     doi_result_table = result_table(8)
     node_result_table = result_table(col_headers=['Node Name', 'IP Address', 'Online', 'Health'])
 
-
     '''Dropdown Instance'''
     node_dropdown = ft.Dropdown(
         label='RemoteDAQ Node',
@@ -125,8 +124,7 @@ def main(page: ft.Page):
     def update_node_dropdown():
         if page.route == '/':
             new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != zt_id and r['online']]
-            node_dropdown_options = [opt.key for opt in node_dropdown.options]
-            if node_dropdown_options != new_node_list:
+            if len(node_dropdown.options) != len(new_node_list):
                 node_dropdown.options.clear()
                 for node in new_node_list:
                     node_dropdown.options.append(ft.dropdown.Option(node))
@@ -136,19 +134,20 @@ def main(page: ft.Page):
     def update_status_table():
         if page.route == '/status':
             new_node_list = [r for r in get_node_list() if r['nodeId'] != zt_id]
-            node_result_table.rows.clear()
-            for n in new_node_list:
-                node_result_table.rows.append(
-                    ft.DataRow(
-                        [
-                            ft.DataCell(ft.Text(n['name'])),
-                            ft.DataCell(ft.Text(n['config']['ipAssignments'][0])),
-                            ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['online'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
-                            ft.DataCell(ft.Text(''))
-                        ]
+            if len(node_result_table.rows) != len(new_node_list):
+                node_result_table.rows.clear()
+                for n in new_node_list:
+                    node_result_table.rows.append(
+                        ft.DataRow(
+                            [
+                                ft.DataCell(ft.Text(n['name'])),
+                                ft.DataCell(ft.Text(n['config']['ipAssignments'][0])),
+                                ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['online'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
+                                ft.DataCell(ft.Text(''))
+                            ]
+                        )
                     )
-                )
-            node_result_table.update()
+                node_result_table.update()
 
     '''Parse Data Function'''
     def parse_data(api_response, output_table):
