@@ -149,6 +149,10 @@ def main(page: ft.Page):
                     )
                 node_result_table.update()
 
+    '''Add Node Function'''
+    def add_node(e):
+        print('Add Node')
+
     '''Parse Data Function'''
     def parse_data(api_response, output_table):
         for row in output_table.rows:
@@ -475,21 +479,22 @@ def main(page: ft.Page):
     )
 
     '''Status Menu'''
-    status_menu = ft.Row(
-        [
-            card(obj=
-                ft.Column(
+    status_menu = card(obj=
+        ft.Column(
+            [
+                
+                ft.Row(
                     [
                         node_result_table
                     ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    expand=True
+                    scroll=ft.ScrollMode.ADAPTIVE,
                 ),
-                width=550
-            ),
-            
-        ],
-        scroll=ft.ScrollMode.ADAPTIVE,
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            expand=True,
+            scroll=ft.ScrollMode.ADAPTIVE,
+        ),
+        width=550
     )
 
     '''AppBar Menu'''
@@ -502,7 +507,7 @@ def main(page: ft.Page):
     '''Floating Action Button'''
     fab = ft.FloatingActionButton(
         icon=ft.icons.ADD,
-        visible=False
+        on_click=add_node
     )
 
     '''Navigation Menu'''
@@ -510,7 +515,9 @@ def main(page: ft.Page):
         label_type=ft.NavigationRailLabelType.ALL,
         width=100,
         height=page.height,
-        leading=ft.FloatingActionButton(icon=ft.icons.ADD, text='Add'),
+        leading=ft.FloatingActionButton(icon=ft.icons.ADD,
+                                        text='Add',
+                                        on_click=add_node),
         group_alignment=-0.9,
         destinations=[
             ft.NavigationRailDestination(
@@ -552,11 +559,13 @@ def main(page: ft.Page):
             ),
         ],
         on_change=lambda e: page.go(nav[e.control.selected_index]),
-        visible=False
     )
 
     '''App View'''
-    view = ft.Row(expand=True)
+    view = ft.Column(
+        expand=True,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+    )
     divider = ft.VerticalDivider()
     active_view = ft.Row(
         [rail, divider, view],
@@ -572,38 +581,14 @@ def main(page: ft.Page):
         view.controls.clear()
         if route_data == '/':
             '''/ Route'''
-            view.controls.append(
-                ft.Column(
-                    [
-                        node_dropdown,
-                        main_tab,
-                    ],
-                    expand=True
-                ),
-            )
+            view.controls.append(node_dropdown)
+            view.controls.append(main_tab)
         if route_data == '/status':
             '''/status Route'''
-            view.controls.append(
-                ft.Column(
-                    [
-                        status_menu
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    scroll=ft.ScrollMode.ADAPTIVE,
-                    expand=True
-                ),
-            )
+            view.controls.append(status_menu)
         if route_data == '/about':
             '''/about Route'''
-            view.controls.append(
-                ft.Column(
-                    [
-                        ft.Text('Made with 💖 by Dimas Fitrio Kurniawan')
-                    ],
-                    alignment=ft.MainAxisAlignment.START,
-                    expand=True
-                ),
-            )
+            view.controls.append(ft.Text('Made with 💖 by Dimas Fitrio Kurniawan'))
         page.update()
     
     '''Page Resize Function'''
