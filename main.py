@@ -93,7 +93,8 @@ def main(page: ft.Page):
         page.dialog = ft.AlertDialog(
             title=ft.Text(text),
             content=content,
-            actions=actions
+            actions=actions,
+            actions_alignment=ft.MainAxisAlignment.END,
         )
         page.dialog.open = True
 
@@ -151,7 +152,22 @@ def main(page: ft.Page):
 
     '''Add Node Function'''
     def add_node(e):
-        print('Add Node')
+        dialog('Configure a New Node',
+            content=ft.Column(
+                [
+                    ft.TextField(label='Node IP'),
+                    ft.TextField(label='SSH Password'),
+                ],
+                height=200
+            ),
+            actions=[ft.FilledButton('Apply')]
+        )
+        # -> Get InfluxDB IP
+        # -> Get InfluxDB Token
+        # -> Get InfluxDB Org
+        # -> Get InfluxDB Bucket
+        # -> Get Node Hostname from API to Rename Node in ZeroTier
+        page.update()
 
     '''Parse Data Function'''
     def parse_data(api_response, output_table):
@@ -167,7 +183,9 @@ def main(page: ft.Page):
 
     '''DAQ Function'''
     def daq(endpoint, result_table=None, daq_pin_values=None):
-        selected_node = str(node_dropdown.value).split(' | ')[1]
+        selected_node = ''
+        if node_dropdown.options:
+            selected_node = str(node_dropdown.value).split(' | ')[1]
         url = 'http://' + selected_node + ':8000' + endpoint
         if selected_node:
             if result_table:
