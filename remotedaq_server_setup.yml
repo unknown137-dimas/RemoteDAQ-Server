@@ -64,7 +64,7 @@
     - name: Save ZeroTier Client Install Script
       copy:
         src: result.stdout
-        dst: zerotier-install.sh
+        dest: zerotier-install.sh
 
     - name: Install ZeroTier Client
       command: zerotier-install.sh
