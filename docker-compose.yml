@@ -7,10 +7,6 @@ services:
     restart: always
     ports:
       - 2023:2023
-    environment:
-      ZT_TOKEN: /run/secrets/zt_token
-    secrets:
-      - zt_token
     volumes:
       - ./main.py:/rdaq-server/main.py:ro
       - ./.env:/rdaq-server/.env:ro
