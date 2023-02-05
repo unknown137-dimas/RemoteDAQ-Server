@@ -22,8 +22,11 @@ services:
     ports:
       - 8086:8086
     volumes:
+      - influxdb-config:/etc/influxdb2
       - influxdb-data:/var/lib/influxdb2
 
 volumes:
+  influxdb-config:
+    external: True
   influxdb-data:
     external: True

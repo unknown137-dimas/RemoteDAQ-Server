@@ -17,7 +17,7 @@
         state: latest
         update_cache: true
 
-    - name: Install required system packages
+    - name: Install Required System Packages
       apt:
         name:
           - apt-transport-https
@@ -40,7 +40,7 @@
         repo: deb https://download.docker.com/linux/ubuntu jammy stable
         state: present
 
-    - name: Update apt and install docker-ce
+    - name: Update apt and Install docker-ce
       apt:
         name:
           - docker-ce
@@ -59,15 +59,11 @@
       uri:
         url: https://install.zerotier.com
         method: GET
-      register: result
-
-    - name: Save ZeroTier Client Install Script
-      copy:
-        src: result.stdout
-        dest: zerotier-install.sh
+        dest: ./zerotier-install.sh
+        mode: u+rwx
 
     - name: Install ZeroTier Client
-      command: zerotier-install.sh
+      command: ./zerotier-install.sh
 
     # Join Zerotier Network
     - name: Connect to ZeroTier Network
@@ -82,7 +78,7 @@
     # Create .env File
     - name: Creating .env File
       copy:
-        dest: .env
+        dest: ./.env
         content: |
           ZT_ID={{ zt_id }}
           ZT_NET_ID='{{ zt_net_id }}'
@@ -91,12 +87,13 @@
           DOCKER_INFLUXDB_INIT_PASSWORD='{{ db_pass }}'
           DOCKER_INFLUXDB_INIT_ORG='{{ db_org }}'
           DOCKER_INFLUXDB_INIT_BUCKET='{{ db_bucket }}'
-        state: present
 
     # Deploy RemoteDAQ Server
     - name: Create InfluxDB Persistent Storage
       docker_volume:
-        name: influxdb_data
+        name:
+          - influxdb-config
+          - influxdb-data
     
     - name: Copy Project Files to tmp Directory
       copy:
@@ -106,15 +103,3 @@
     - name: Deploy Container
       docker_compose:
         project_src: tmp/
-        register: output
-
-    - debug:
-        var: output
-
-
-
-
-    
-
-
-    
