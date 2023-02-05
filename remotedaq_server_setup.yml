@@ -1,0 +1,114 @@
+---
+  - name: Installing RemoteDAQ Server
+    hosts: local
+    vars:
+      zt_net_id: ''
+      zt_token: ''
+      db_user: ''
+      db_pass: ''
+      db_org: UGM
+      db_bucket: RemoteDAQ_DB
+    
+    tasks:
+    # Install Docker
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+
+    - name: Install required system packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - python3-pip
+        state: latest
+        update_cache: true
+    
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt:
+        name:
+          - docker-ce
+          - docker-compose
+        state: latest
+        update_cache: true
+
+    - name: Install Docker Module for Python
+      pip:
+        name:
+          - docker
+          - PyYAML
+
+    # Install ZeroTier Client
+    - name: Get ZeroTier Client Install Script
+      uri:
+        url: https://install.zerotier.com
+        method: GET
+      register: result
+
+    - name: Install ZeroTier Client
+      command: result.stdout
+
+    # Join Zerotier Network
+    - name: Connect to ZeroTier Network
+      command: zerotier-cli join {{ zt_net_id }}
+      become: true
+
+    - name: Get ZeroTier ID
+      command: zerotier-cli info | cut -d ' ' -f 3
+      become: true
+      register: zt_id
+    
+    # Create .env File
+    - name: Creating .env File
+      copy:
+        dest: .env
+        content: |
+          ZT_ID={{ zt_id }}
+          ZT_NET_ID={{ zt_net_id }}
+          ZT_TOKEN={{ zt_token }}
+          DOCKER_INFLUXDB_INIT_USERNAME={{ db_user }}
+          DOCKER_INFLUXDB_INIT_PASSWORD={{ db_pass }}
+          DOCKER_INFLUXDB_INIT_ORG={{ db_org }}
+          DOCKER_INFLUXDB_INIT_BUCKET={{ db_bucket }}
+        state: present
+
+    # Deploy RemoteDAQ Server
+    - name: Create InfluxDB Persistent Storage
+      docker_volume:
+        name: influxdb_data
+    
+    - name: Copy Project Files to tmp Directory
+      copy:
+        src: .
+        dest: tmp/
+
+    - name: Deploy Container
+      docker_compose:
+        project_src: tmp/
+        register: output
+
+    - debug:
+        var: output
+
+
+
+
+    
+
+
+    
