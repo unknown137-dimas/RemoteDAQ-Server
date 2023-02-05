@@ -1,11 +1,11 @@
 ---
   - name: Installing RemoteDAQ Server
-    hosts: local
+    hosts: all
     vars:
-      zt_net_id: ''
-      zt_token: ''
-      db_user: ''
-      db_pass: ''
+      zt_net_id: '' #CHANGE THIS using your ZeroTier Network ID
+      zt_token: '' #CHANGE THIS using your ZeroTier Token
+      db_user: '' #CHANGE THIS using your desired DB Username
+      db_pass: '' #CHANGE THIS using your desired DB Password
       db_org: UGM
       db_bucket: RemoteDAQ_DB
     
@@ -36,6 +36,7 @@
 
     - name: Add Docker Repository
       apt_repository:
+        filename: docker.list
         repo: deb https://download.docker.com/linux/ubuntu jammy stable
         state: present
 
@@ -60,12 +61,17 @@
         method: GET
       register: result
 
+    - name: Save ZeroTier Client Install Script
+      copy:
+        src: result.stdout
+        dst: zerotier-install.sh
+
     - name: Install ZeroTier Client
-      command: result.stdout
+      command: zerotier-install.sh
 
     # Join Zerotier Network
     - name: Connect to ZeroTier Network
-      command: zerotier-cli join {{ zt_net_id }}
+      command: zerotier-cli join '{{ zt_net_id }}'
       become: true
 
     - name: Get ZeroTier ID
@@ -79,12 +85,12 @@
         dest: .env
         content: |
           ZT_ID={{ zt_id }}
-          ZT_NET_ID={{ zt_net_id }}
-          ZT_TOKEN={{ zt_token }}
-          DOCKER_INFLUXDB_INIT_USERNAME={{ db_user }}
-          DOCKER_INFLUXDB_INIT_PASSWORD={{ db_pass }}
-          DOCKER_INFLUXDB_INIT_ORG={{ db_org }}
-          DOCKER_INFLUXDB_INIT_BUCKET={{ db_bucket }}
+          ZT_NET_ID='{{ zt_net_id }}'
+          ZT_TOKEN='{{ zt_token }}'
+          DOCKER_INFLUXDB_INIT_USERNAME='{{ db_user }}'
+          DOCKER_INFLUXDB_INIT_PASSWORD='{{ db_pass }}'
+          DOCKER_INFLUXDB_INIT_ORG='{{ db_org }}'
+          DOCKER_INFLUXDB_INIT_BUCKET='{{ db_bucket }}'
         state: present
 
     # Deploy RemoteDAQ Server
