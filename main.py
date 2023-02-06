@@ -146,11 +146,20 @@ def main(page: ft.Page):
                                 ft.DataCell(ft.Text(n['name'])),
                                 ft.DataCell(ft.Text(n['config']['ipAssignments'][0])),
                                 ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['online'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
-                                ft.DataCell(ft.Text(''))
+                                ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED))
                             ]
                         )
                     )
                 node_result_table.update()
+
+    '''Node Health Check Function'''
+    def health_check():
+        for row in node_result_table.rows:
+            ip = row.cells[1].content.value
+            url = 'http://' + str(ip) + ':8000/health'
+            result = asyncio.run(api_request(url))
+            if result == 'OK':
+                row.cells[3].content.value = ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)
 
     '''Add Node Function'''
     def add_node(e):
@@ -644,6 +653,7 @@ def main(page: ft.Page):
     sched = BackgroundScheduler()
     sched.add_job(update_node_dropdown, 'interval', seconds=3)
     sched.add_job(update_status_table, 'interval', seconds=3)
+    sched.add_job(health_check, 'interval', seconds=5)
     sched.start()
 
 if __name__ == '__main__':
