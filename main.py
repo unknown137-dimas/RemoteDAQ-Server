@@ -7,12 +7,12 @@ from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 
 '''API Requests Function'''
-async def api_request(url, payload=None, headers={}) -> dict:
+async def api_request(url, payload={}, headers={}) -> dict:
     headers['Content-Type'] = 'application/json'
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
             if payload:
-                value = json.dumps({'value' : payload})
+                value = json.dumps(payload)
                 async with session.put(url, data=value) as response:
                     return await response.json()
             else:
@@ -83,6 +83,8 @@ def main(page: ft.Page):
     page.theme = theme
     page.title = 'RemoteDAQ Dashboard'
     nav = ['/', '/status', '/about']
+    
+    # Load Variables
     load_dotenv()
     zt_id = str(getenv('ZT_ID'))
     zt_net_id = str(getenv('ZT_NET_ID'))
@@ -152,11 +154,13 @@ def main(page: ft.Page):
 
     '''Add Node Function'''
     def add_node(e):
+        node_ip = ft.TextField(label='Node IP')
+        ssh_pass = ft.TextField(label='SSH Password')
         dialog('Configure a New Node',
             content=ft.Column(
                 [
-                    ft.TextField(label='Node IP'),
-                    ft.TextField(label='SSH Password'),
+                    node_ip,
+                    ssh_pass
                 ],
                 height=200
             ),
@@ -164,9 +168,13 @@ def main(page: ft.Page):
         )
         # -> Get InfluxDB IP
         # -> Get InfluxDB Token
-        # -> Get InfluxDB Org
-        # -> Get InfluxDB Bucket
-        # -> Get Node Hostname from API to Rename Node in ZeroTier
+        db_org = str(getenv('DOCKER_INFLUXDB_INIT_ORG'))
+        db_bucket = str(getenv('DOCKER_INFLUXDB_INIT_BUCKET'))
+        node_url = 'http://' + str(node_ip.value) + ':8000/node_info'
+        result = asyncio.run(api_request(node_url))
+        zt_url = 'https://api.zerotier.com/api/v1/network/' + zt_net_id + '/member/' + result['zt_id']
+        asyncio.run(api_request(zt_url, payload={'name': result['hostname']}))
+        # -> Run Ansible Playbook to configure the new node
         page.update()
 
     '''Parse Data Function'''
@@ -199,7 +207,7 @@ def main(page: ft.Page):
                 else:
                     dialog('Please select one or more pin...')
             if daq_pin_values:
-                result = asyncio.run(api_request(url, payload=daq_pin_values))
+                result = asyncio.run(api_request(url, payload={'value': daq_pin_values}))
                 if result['success'] == True:
                     dialog('Success')
                 else:
