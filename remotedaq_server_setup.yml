@@ -1,6 +1,7 @@
 ---
   - name: Installing RemoteDAQ Server
-    hosts: all
+    hosts: localhost
+    connection: local 
     vars:
       zt_net_id: '' #CHANGE THIS using your ZeroTier Network ID
       zt_token: '' #CHANGE THIS using your ZeroTier Token
