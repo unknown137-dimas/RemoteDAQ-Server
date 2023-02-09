@@ -98,7 +98,7 @@
     # Create Volume for InfluxDB Container
     - name: Create InfluxDB Config Storage
       docker_volume:
-        name: influxdb-data
+        name: influxdb-config
 
     - name: Create InfluxDB Persistent Storage
       docker_volume:
