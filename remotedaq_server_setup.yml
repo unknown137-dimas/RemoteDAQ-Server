@@ -82,12 +82,12 @@
         dest: ./.env
         content: |
           ZT_ID={{ zt_id }}
-          ZT_NET_ID='{{ zt_net_id }}'
-          ZT_TOKEN='{{ zt_token }}'
-          DOCKER_INFLUXDB_INIT_USERNAME='{{ db_user }}'
-          DOCKER_INFLUXDB_INIT_PASSWORD='{{ db_pass }}'
-          DOCKER_INFLUXDB_INIT_ORG='{{ db_org }}'
-          DOCKER_INFLUXDB_INIT_BUCKET='{{ db_bucket }}'
+          ZT_NET_ID={{ zt_net_id }}
+          ZT_TOKEN={{ zt_token }}
+          DOCKER_INFLUXDB_INIT_USERNAME={{ db_user }}
+          DOCKER_INFLUXDB_INIT_PASSWORD={{ db_pass }}
+          DOCKER_INFLUXDB_INIT_ORG={{ db_org }}
+          DOCKER_INFLUXDB_INIT_BUCKET={{ db_bucket }}
 
     # Start Docker Service
     - name: Starting Docker Service
