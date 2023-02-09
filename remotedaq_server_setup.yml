@@ -1,6 +1,7 @@
 ---
   - name: Installing RemoteDAQ Server
-    hosts: all
+    hosts: localhost
+    connection: local 
     vars:
       zt_net_id: '' #CHANGE THIS using your ZeroTier Network ID
       zt_token: '' #CHANGE THIS using your ZeroTier Token
@@ -88,13 +89,22 @@
           DOCKER_INFLUXDB_INIT_ORG='{{ db_org }}'
           DOCKER_INFLUXDB_INIT_BUCKET='{{ db_bucket }}'
 
-    # Deploy RemoteDAQ Server
+    # Start Docker Service
+    - name: Starting Docker Service
+      service:
+        name: docker
+        state: started
+
+    # Create Volume for InfluxDB Container
+    - name: Create InfluxDB Config Storage
+      docker_volume:
+        name: influxdb-data
+
     - name: Create InfluxDB Persistent Storage
       docker_volume:
-        name:
-          - influxdb-config
-          - influxdb-data
+        name: influxdb-data
     
+    # Deploy RemoteDAQ Server
     - name: Copy Project Files to tmp Directory
       copy:
         src: .
