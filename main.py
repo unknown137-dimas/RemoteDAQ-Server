@@ -6,11 +6,14 @@ from os import getenv
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 
+sched = BackgroundScheduler()
+
 '''API Requests Function'''
 async def api_request(url, payload={}, headers={}) -> dict:
     headers['Content-Type'] = 'application/json'
     try:
-        async with aiohttp.ClientSession(headers=headers) as session:
+        timeout = aiohttp.ClientTimeout(total=30)
+        async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
             if payload:
                 value = json.dumps(payload)
                 async with session.put(url, data=value) as response:
@@ -104,7 +107,7 @@ def main(page: ft.Page):
     ai_result_table =  result_table(8)
     di_result_table = result_table(8)
     doi_result_table = result_table(8)
-    node_result_table = result_table(col_headers=['Node Name', 'IP Address', 'Online', 'Health'])
+    node_result_table = result_table(col_headers=['Node Name', 'IP Address', 'Online'])
 
     '''Dropdown Instance'''
     node_dropdown = ft.Dropdown(
@@ -137,29 +140,18 @@ def main(page: ft.Page):
     def update_status_table():
         if page.route == '/status':
             new_node_list = [r for r in get_node_list() if r['nodeId'] != zt_id]
-            if len(node_result_table.rows) != len(new_node_list):
-                node_result_table.rows.clear()
-                for n in new_node_list:
-                    node_result_table.rows.append(
-                        ft.DataRow(
-                            [
-                                ft.DataCell(ft.Text(n['name'])),
-                                ft.DataCell(ft.Text(n['config']['ipAssignments'][0])),
-                                ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['online'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
-                                ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED))
-                            ]
-                        )
+            node_result_table.rows.clear()
+            for n in new_node_list:
+                node_result_table.rows.append(
+                    ft.DataRow(
+                        [
+                            ft.DataCell(ft.Text(n['name'])),
+                            ft.DataCell(ft.Text(n['config']['ipAssignments'][0])),
+                            ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['online'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
+                        ]
                     )
-                node_result_table.update()
-
-    '''Node Health Check Function'''
-    def health_check():
-        for row in node_result_table.rows:
-            ip = row.cells[1].content.value
-            url = 'http://' + str(ip) + ':8000/health'
-            result = asyncio.run(api_request(url))
-            if result == 'OK':
-                row.cells[3].content.value = ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)
+                )
+            node_result_table.update()
 
     '''Add Node Function'''
     def add_node(e):
@@ -520,13 +512,13 @@ def main(page: ft.Page):
                 
                 ft.Row(
                     [
-                        node_result_table
+                        node_result_table,
                     ],
                     scroll=ft.ScrollMode.ADAPTIVE,
-                ),
+                )
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            expand=True,
+            expand=1,
             scroll=ft.ScrollMode.ADAPTIVE,
         ),
         width=550
@@ -650,10 +642,8 @@ def main(page: ft.Page):
     page.go(page.route)
 
     '''Loop Subroutine'''
-    sched = BackgroundScheduler()
     sched.add_job(update_node_dropdown, 'interval', seconds=3)
     sched.add_job(update_status_table, 'interval', seconds=3)
-    sched.add_job(health_check, 'interval', seconds=5)
     sched.start()
 
 if __name__ == '__main__':
