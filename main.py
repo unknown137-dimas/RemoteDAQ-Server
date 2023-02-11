@@ -509,7 +509,7 @@ def main(page: ft.Page):
     status_menu = card(obj=
         ft.Column(
             [
-                
+                ft.Text('Node Status', weight=ft.FontWeight.BOLD),
                 ft.Row(
                     [
                         node_result_table,
@@ -521,7 +521,19 @@ def main(page: ft.Page):
             expand=1,
             scroll=ft.ScrollMode.ADAPTIVE,
         ),
-        width=550
+        width=500
+    )
+
+    '''About Menu'''
+    about_menu = card(obj=
+        ft.Column(
+            [
+                ft.Text('Made with 💖 by Dimas Fitrio Kurniawan'),
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            expand=1,
+            scroll=ft.ScrollMode.ADAPTIVE,
+        )
     )
 
     '''AppBar Menu'''
@@ -615,7 +627,7 @@ def main(page: ft.Page):
             view.controls.append(status_menu)
         if route_data == '/about':
             '''/about Route'''
-            view.controls.append(ft.Text('Made with 💖 by Dimas Fitrio Kurniawan'))
+            view.controls.append(about_menu)
         page.update()
     
     '''Page Resize Function'''
