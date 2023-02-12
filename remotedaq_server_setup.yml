@@ -124,5 +124,5 @@
 
     # Configure InfluxDB
     - name: Configure InfluxDB
-      shell: docker exec remotedaq_db influxdb2 influx setup --username {{ db_user }} --password {{ db_pass }} --org {{ db_org }} --bucket {{ db_bucket }} --force
+      shell: docker exec remotedaq_db influx setup --username {{ db_user }} --password {{ db_pass }} --org {{ db_org }} --bucket {{ db_bucket }} --force
       become: true
