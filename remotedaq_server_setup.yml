@@ -2,22 +2,33 @@
   - name: Installing RemoteDAQ Server
     hosts: localhost
     connection: local 
-    vars:
-      zt_net_id: '' #CHANGE THIS using your ZeroTier Network ID
-      zt_token: '' #CHANGE THIS using your ZeroTier Token
-      db_user: '' #CHANGE THIS using your desired DB Username
-      db_pass: '' #CHANGE THIS using your desired DB Password
-      db_org: UGM
-      db_bucket: RemoteDAQ_DB
-    
-    tasks:
-    # Install Docker
-    - name: Install aptitude
-      apt:
-        name: aptitude
-        state: latest
-        update_cache: true
+    vars_prompt:
 
+    - name: zt_net_id
+      prompt: Insert ZeroTier Network ID > 
+      private: false
+
+    - name: zt_token
+      prompt: Insert Generated ZeroTier Token (The input is hidden) > 
+
+    - name: db_user
+      prompt: Insert Username used for InfluxDB > 
+      private: false
+
+    - name: db_pass
+      prompt: Insert Username used for InfluxDB (The input is hidden) > 
+
+    - name: db_org
+      prompt: Insert InfluxDB Organization Name > 
+      private: false
+
+    - name: db_bucket
+      prompt: Insert InfluxDB Bucket Name > 
+      private: false
+
+    tasks:
+
+    # Install Docker
     - name: Install Required System Packages
       apt:
         name:
@@ -27,6 +38,7 @@
           - gnupg
           - lsb-release
           - python3-pip
+          - openssh-client
         state: latest
         update_cache: true
     
