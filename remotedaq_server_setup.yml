@@ -84,7 +84,7 @@
       become: true
 
     - name: Get ZeroTier ID
-      command: zerotier-cli info | cut -d ' ' -f 3
+      shell: zerotier-cli info | cut -d ' ' -f 3
       become: true
       register: zt_id
     
@@ -93,7 +93,7 @@
       copy:
         dest: ./.env
         content: |
-          ZT_ID={{ zt_id }}
+          ZT_ID={{ zt_id.stdout }}
           ZT_NET_ID={{ zt_net_id }}
           ZT_TOKEN={{ zt_token }}
 
@@ -124,6 +124,5 @@
 
     # Configure InfluxDB
     - name: Configure InfluxDB
-      docker_container_exec:
-        container: remotedaq_db
-        command: influxdb2 influx setup --username {{ db_user }} --password {{ db_pass }} --org {{ db_org }} --bucket {{ db_bucket }} --force
+      shell: docker exec remotedaq_db influxdb2 influx setup --username {{ db_user }} --password {{ db_pass }} --org {{ db_org }} --bucket {{ db_bucket }} --force
+      become: true
