@@ -1,7 +1,7 @@
 ---
   - name: Installing RemoteDAQ Server
     hosts: localhost
-    connection: local 
+    connection: local
     vars_prompt:
 
     - name: zt_net_id
@@ -87,7 +87,20 @@
       shell: zerotier-cli info | cut -d ' ' -f 3
       become: true
       register: zt_id
-    
+
+    - name: Authorize This Server
+      uri:
+        url: https://api.zerotier.com/api/v1/network/{{ zt_net_id }}/member/{{ zt_id.stdout }}
+        method: POST
+        headers:
+          Authorization: Bearer {{ zt_token }}
+        body_format: json
+        body: {
+            "config": {
+                "authorized": true
+            }
+        }
+  
     # Create .env File
     - name: Creating .env File
       copy:
