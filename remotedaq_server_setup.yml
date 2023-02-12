@@ -96,10 +96,6 @@
           ZT_ID={{ zt_id }}
           ZT_NET_ID={{ zt_net_id }}
           ZT_TOKEN={{ zt_token }}
-          DOCKER_INFLUXDB_INIT_USERNAME={{ db_user }}
-          DOCKER_INFLUXDB_INIT_PASSWORD={{ db_pass }}
-          DOCKER_INFLUXDB_INIT_ORG={{ db_org }}
-          DOCKER_INFLUXDB_INIT_BUCKET={{ db_bucket }}
 
     # Start Docker Service
     - name: Starting Docker Service
@@ -125,3 +121,9 @@
     - name: Deploy Container
       docker_compose:
         project_src: tmp/
+
+    # Configure InfluxDB
+    - name: Configure InfluxDB
+      docker_container_exec:
+        container: remotedaq_db
+        command: influxdb2 influx setup --username {{ db_user }} --password {{ db_pass }} --org {{ db_org }} --bucket {{ db_bucket }} --force
