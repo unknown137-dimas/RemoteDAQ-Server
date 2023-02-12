@@ -8,6 +8,6 @@ sudo apt-add-repository -y ppa:ansible/ansible > /dev/null 2>&1
 sudo apt install -y ansible > /dev/null 2>&1
 sudo apt -y autoremove > /dev/null 2>&1
 
-# Install RemoteDAQ Server
+# Setup RemoteDAQ Server
 echo "Configuring RemoteDAQ Server..."
 sudo ansible-playbook remotedaq_server_setup.yml
