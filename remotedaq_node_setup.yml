@@ -47,9 +47,9 @@
     - name: Copy Project Files to tmp Directory
       copy:
         src: .
-        dest: tmp/
+        dest: /tmp/RemoteDAQ
 
     # Deploy RemoteDAQ Node
     - name: Deploy Container
       docker_compose:
-        project_src: tmp/
+        project_src: /tmp/RemoteDAQ
