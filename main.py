@@ -6,8 +6,6 @@ from os import getenv
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 
-sched = BackgroundScheduler()
-
 '''API Requests Function'''
 async def api_request(url, payload={}, headers={}) -> dict:
     headers['Content-Type'] = 'application/json'
@@ -16,7 +14,7 @@ async def api_request(url, payload={}, headers={}) -> dict:
         async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
             if payload:
                 value = json.dumps(payload)
-                async with session.put(url, data=value) as response:
+                async with session.post(url, data=value) as response:
                     return await response.json()
             else:
                 async with session.get(url) as response:
@@ -155,28 +153,35 @@ def main(page: ft.Page):
 
     '''Add Node Function'''
     def add_node(e):
-        node_ip = ft.TextField(label='Node IP')
+        node_id = ft.TextField(label='Node ID')
+        node_name = ft.TextField(label='Node Name')
         ssh_pass = ft.TextField(label='SSH Password')
+        db_ip = str(getenv('DB_IP'))
+        db_token = str(getenv('DB_TOKEN'))
+        db_org = str(getenv('DB_ORG'))
+        db_bucket = str(getenv('DB_BUCKET'))
+
+        def execute(e):
+            zt_url = 'https://api.zerotier.com/api/v1/network/' + zt_net_id + '/member/' + str(node_id.value)
+            headers = {'Authorization' : 'Bearer ' + zt_token}
+            result = asyncio.run(api_request(zt_url, payload={'name': node_name.value, 'config': {'authorized': True}}, headers=headers))
+            print(result)
+
+        apply_button = ft.FilledButton('Apply', on_click=execute)
+        
         dialog('Configure a New Node',
             content=ft.Column(
                 [
-                    node_ip,
+                    node_id,
+                    node_name,
                     ssh_pass
                 ],
                 height=200
             ),
-            actions=[ft.FilledButton('Apply')]
+            actions=[apply_button]
         )
-        # -> Get InfluxDB IP
-        # -> Get InfluxDB Token
-        db_org = str(getenv('DOCKER_INFLUXDB_INIT_ORG'))
-        db_bucket = str(getenv('DOCKER_INFLUXDB_INIT_BUCKET'))
-        node_url = 'http://' + str(node_ip.value) + ':8000/node_info'
-        result = asyncio.run(api_request(node_url))
-        zt_url = 'https://api.zerotier.com/api/v1/network/' + zt_net_id + '/member/' + result['zt_id']
-        asyncio.run(api_request(zt_url, payload={'name': result['hostname']}))
-        # -> Run Ansible Playbook to configure the new node
         page.update()
+        # -> Run Ansible Playbook to configure the new node
 
     '''Parse Data Function'''
     def parse_data(api_response, output_table):
@@ -654,6 +659,7 @@ def main(page: ft.Page):
     page.go(page.route)
 
     '''Loop Subroutine'''
+    sched = BackgroundScheduler()
     sched.add_job(update_node_dropdown, 'interval', seconds=3)
     sched.add_job(update_status_table, 'interval', seconds=3)
     sched.start()
