@@ -1,22 +1,9 @@
 ---
   - name: Installing RemoteDAQ Node
     hosts: all
-    vars:
-      zt_net_id: '' #CHANGE THIS using your ZeroTier Network ID
-      zt_token: '' #CHANGE THIS using your ZeroTier Token
-      db_user: '' #CHANGE THIS using your desired DB Username
-      db_pass: '' #CHANGE THIS using your desired DB Password
-      db_org: UGM
-      db_bucket: RemoteDAQ_DB
-    
     tasks:
+    
     # Install Docker
-    - name: Install aptitude
-      apt:
-        name: aptitude
-        state: latest
-        update_cache: true
-
     - name: Install Required System Packages
       apt:
         name:
@@ -54,49 +41,15 @@
           - docker
           - PyYAML
 
-    # Install ZeroTier Client
-    - name: Get ZeroTier Client Install Script
-      uri:
-        url: https://install.zerotier.com
-        method: GET
-        dest: ./zerotier-install.sh
-        mode: u+rwx
-
-    - name: Install ZeroTier Client
-      command: ./zerotier-install.sh
-
-    # Join Zerotier Network
-    - name: Connect to ZeroTier Network
-      command: zerotier-cli join '{{ zt_net_id }}'
-      become: true
-
-    - name: Get ZeroTier ID
-      command: zerotier-cli info | cut -d ' ' -f 3
-      become: true
-      register: zt_id
+    # Copy .env-node File from Server to .env File in Node
     
-    - name: Get Hostname
-      command: hostname
-      register: hostname
-
-    # Create .env File
-    - name: Creating .env File
-      copy:
-        dest: ./.env
-        content: |
-          HOSTNAME={{ hostname }}
-          ZT_ID={{ zt_id }}
-          ZT_NET_ID='{{ zt_net_id }}'
-          INFLUXDB_IP='{{ db_ip }}'
-          INFLUXDB_TOKEN='{{ db_token }}'
-          INFLUXDB_ORG='{{ db_org }}'
-          INFLUXDB_BUCKET='{{ db_bucket }}'
-
+    # Copy Project Files
     - name: Copy Project Files to tmp Directory
       copy:
         src: .
         dest: tmp/
 
+    # Deploy RemoteDAQ Node
     - name: Deploy Container
       docker_compose:
         project_src: tmp/
