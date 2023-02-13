@@ -2,6 +2,7 @@
   - name: Installing RemoteDAQ Server
     hosts: localhost
     connection: local
+    become: true
     vars_prompt:
 
     - name: zt_net_id
@@ -81,12 +82,10 @@
     # Join Zerotier Network
     - name: Connect to ZeroTier Network
       command: zerotier-cli join '{{ zt_net_id }}'
-      become: true
 
     # Get ZeroTier ID
     - name: Get ZeroTier ID
       shell: zerotier-cli info | cut -d ' ' -f 3
-      become: true
       register: zt_id
 
     # Authorize Server to ZeroTier
@@ -106,7 +105,6 @@
     # Get Server IP Address
     - name: Get Server IP Address
       shell: hostname -I | cut -d ' ' -f 2
-      become: true
       register: db_ip
 
     # Create .env File
@@ -151,13 +149,10 @@
     # Configure InfluxDB
     - name: Configure InfluxDB
       shell: docker exec remotedaq_db influx setup --username {{ db_user }} --password {{ db_pass }} --org {{ db_org }} --bucket {{ db_bucket }} --force
-      become: true
-      ignore_errors: true
 
     # Get InfluxDB Token
     - name: Get InfluxDB Token
       shell: docker exec remotedaq_db influx auth list --user {{ db_user }} --hide-headers | cut -f 3
-      become: true
       register: db_token
 
     # Append .env File
