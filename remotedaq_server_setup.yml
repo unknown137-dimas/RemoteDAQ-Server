@@ -161,6 +161,7 @@
     # Configure InfluxDB
     - name: Configure InfluxDB
       command: docker exec remotedaq_db influx setup --username {{ db_user }} --password {{ db_pass }} --org {{ db_org }} --bucket {{ db_bucket }} --force
+      ignore_errors: true
 
     # Get InfluxDB Token
     - name: Get InfluxDB Token
