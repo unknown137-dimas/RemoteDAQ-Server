@@ -115,6 +115,12 @@
           ZT_ID={{ zt_id.stdout }}
           ZT_NET_ID={{ zt_net_id }}
           ZT_TOKEN={{ zt_token }}
+
+    # Create .env-node File
+    - name: Creating .env-node File
+      copy:
+        dest: ./.env-node
+        content: |
           DB_IP=http://{{ db_ip.stdout }}:8086
           DB_ORG={{ db_org }}
           DB_BUCKET={{ db_bucket }}
@@ -161,10 +167,10 @@
       shell: docker exec remotedaq_db influx auth list --user {{ db_user }} --hide-headers | cut -f 3
       register: db_token
 
-    # Append .env File
-    - name: Append InfluxDB Token to .env File
+    # Append .env-node File
+    - name: Append InfluxDB Token to .env-node File
       lineinfile:
-        path: ./.env
+        path: ./.env-node
         insertafter: EOF
         line: DB_TOKEN={{ db_token.stdout }}
         state: present

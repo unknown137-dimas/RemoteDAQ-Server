@@ -10,6 +10,7 @@ services:
     volumes:
       - ./main.py:/rdaq-server/main.py:ro
       - ./.env:/rdaq-server/.env:ro
+      - ./.env-node:/rdaq-server/.env-node
   data_db:
     image: influxdb:alpine
     container_name: remotedaq_db
