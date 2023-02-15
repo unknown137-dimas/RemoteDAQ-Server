@@ -42,7 +42,7 @@
           - openssh-client
         state: latest
         update_cache: true
-    
+
     - name: Add Docker GPG apt Key
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
@@ -133,7 +133,7 @@
     - name: Create InfluxDB Persistent Storage
       docker_volume:
         name: influxdb-data
-    
+
     # Copy Project Files
     - name: Copy Project Files to tmp Directory
       copy:
@@ -146,9 +146,15 @@
         project_src: /tmp/RemoteDAQ-Server
         restarted: true
 
+    # Wait Until Container Ready
+    - name: Wait Until InfluxDB Ready
+      wait_for:
+        host: 0.0.0.0
+        port: 8086
+
     # Configure InfluxDB
     - name: Configure InfluxDB
-      shell: docker exec remotedaq_db influx setup --username {{ db_user }} --password {{ db_pass }} --org {{ db_org }} --bucket {{ db_bucket }} --force
+      command: docker exec remotedaq_db influx setup --username {{ db_user }} --password {{ db_pass }} --org {{ db_org }} --bucket {{ db_bucket }} --force
 
     # Get InfluxDB Token
     - name: Get InfluxDB Token
@@ -157,7 +163,7 @@
 
     # Append .env File
     - name: Append InfluxDB Token to .env File
-      lineinfile: 
+      lineinfile:
         path: ./.env
         insertafter: EOF
         line: DB_TOKEN={{ db_token.stdout }}
