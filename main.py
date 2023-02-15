@@ -3,7 +3,7 @@ import aiohttp
 import json
 import asyncio
 from os import getenv
-from dotenv import load_dotenv
+from dotenv import load_dotenv, dotenv_values
 from apscheduler.schedulers.background import BackgroundScheduler
 
 '''API Requests Function'''
@@ -156,11 +156,8 @@ def main(page: ft.Page):
         node_id = ft.TextField(label='Node ID')
         node_name = ft.TextField(label='Node Name')
         ssh_pass = ft.TextField(label='SSH Password')
-        db_ip = str(getenv('DB_IP'))
-        db_token = str(getenv('DB_TOKEN'))
-        db_org = str(getenv('DB_ORG'))
-        db_bucket = str(getenv('DB_BUCKET'))
-
+        env_node = dotenv_values('.env-node')
+        
         def execute(e):
             zt_url = 'https://api.zerotier.com/api/v1/network/' + zt_net_id + '/member/' + str(node_id.value)
             headers = {'Authorization' : 'Bearer ' + zt_token}
