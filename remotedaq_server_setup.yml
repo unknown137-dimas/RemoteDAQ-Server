@@ -115,7 +115,7 @@
           ZT_ID={{ zt_id.stdout }}
           ZT_NET_ID={{ zt_net_id }}
           ZT_TOKEN={{ zt_token }}
-          DB_IP=http://{{ db_ip }}:8086
+          DB_IP=http://{{ db_ip.stdout }}:8086
           DB_ORG={{ db_org }}
           DB_BUCKET={{ db_bucket }}
 
