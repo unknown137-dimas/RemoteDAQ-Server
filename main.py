@@ -166,11 +166,10 @@ def main(page: ft.Page):
                 ip_result = asyncio.run(api_request(zt_url, headers=headers))
                 node_ip = ip_result['config']['ipAssignments'][0]
                 # remote_command = run(['ansible-playbook', 'remotedaq_node_setup.yml'], capture_output=True)
-                remote_command = run(['ssh', 'unknown@' + str(node_ip), 'echo', 'PING'], capture_output=True)
-                print(remote_command.stdout.decode())
-            # -> Run Ansible Playbook to configure the new node
-
-
+                remote_command = run(['ansible', 'all', '-i', str(node_ip) + ',', '-m', 'ping', '-u', 'unknown', '-k'], capture_output=True, input=str(ssh_pass))
+                # remote_command = run(['ssh', 'unknown@' + str(node_ip), 'echo', 'PING'], capture_output=True)
+                with open('ansible-output.log', 'w') as output:
+                    output.write(remote_command.stdout.decode())
 
         apply_button = ft.FilledButton('Apply', on_click=execute)
         
