@@ -3,7 +3,8 @@ import aiohttp
 import json
 import asyncio
 from os import getenv
-from dotenv import load_dotenv, dotenv_values
+from dotenv import load_dotenv
+from subprocess import run
 from apscheduler.schedulers.background import BackgroundScheduler
 
 '''API Requests Function'''
@@ -127,12 +128,11 @@ def main(page: ft.Page):
     '''Update Node Dropdown Function'''
     def update_node_dropdown():
         if page.route == '/':
-            new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != zt_id and r['online']]
-            if len(node_dropdown.options) != len(new_node_list):
-                node_dropdown.options.clear()
-                for node in new_node_list:
-                    node_dropdown.options.append(ft.dropdown.Option(node))
-                page.update()
+            new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != zt_id and r['online'] and r['config']['ipAssignments']]
+            node_dropdown.options.clear()
+            for node in new_node_list:
+                node_dropdown.options.append(ft.dropdown.Option(node))
+            page.update()
 
     '''Update Node Status Table Function'''
     def update_status_table():
@@ -140,11 +140,12 @@ def main(page: ft.Page):
             new_node_list = [r for r in get_node_list() if r['nodeId'] != zt_id]
             node_result_table.rows.clear()
             for n in new_node_list:
+                node_ip = n['config']['ipAssignments'][0] if n['config']['ipAssignments'] else ''
                 node_result_table.rows.append(
                     ft.DataRow(
                         [
                             ft.DataCell(ft.Text(n['name'])),
-                            ft.DataCell(ft.Text(n['config']['ipAssignments'][0])),
+                            ft.DataCell(ft.Text(node_ip)),
                             ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['online'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
                         ]
                     )
@@ -155,14 +156,21 @@ def main(page: ft.Page):
     def add_node(e):
         node_id = ft.TextField(label='Node ID')
         node_name = ft.TextField(label='Node Name')
-        ssh_pass = ft.TextField(label='SSH Password')
-        env_node = dotenv_values('.env-node')
+        ssh_pass = ft.TextField(label='SSH Password', password=True, can_reveal_password=True)
         
         def execute(e):
             zt_url = 'https://api.zerotier.com/api/v1/network/' + zt_net_id + '/member/' + str(node_id.value)
             headers = {'Authorization' : 'Bearer ' + zt_token}
-            result = asyncio.run(api_request(zt_url, payload={'name': node_name.value, 'config': {'authorized': True}}, headers=headers))
-            print(result)
+            auth_result = asyncio.run(api_request(zt_url, payload={'name': node_name.value, 'config': {'authorized': True}}, headers=headers))
+            if auth_result['config']['authorized']:
+                ip_result = asyncio.run(api_request(zt_url, headers=headers))
+                node_ip = ip_result['config']['ipAssignments'][0]
+                # remote_command = run(['ansible-playbook', 'remotedaq_node_setup.yml'], capture_output=True)
+                remote_command = run(['ssh', 'unknown@' + str(node_ip), 'echo', 'PING'], capture_output=True)
+                print(remote_command.stdout.decode())
+            # -> Run Ansible Playbook to configure the new node
+
+
 
         apply_button = ft.FilledButton('Apply', on_click=execute)
         
@@ -178,7 +186,6 @@ def main(page: ft.Page):
             actions=[apply_button]
         )
         page.update()
-        # -> Run Ansible Playbook to configure the new node
 
     '''Parse Data Function'''
     def parse_data(api_response, output_table):
@@ -194,9 +201,7 @@ def main(page: ft.Page):
 
     '''DAQ Function'''
     def daq(endpoint, result_table=None, daq_pin_values=None):
-        selected_node = ''
-        if node_dropdown.options:
-            selected_node = str(node_dropdown.value).split(' | ')[1]
+        selected_node = str(node_dropdown.value).split(' | ')[1] if node_dropdown.value else ''
         url = 'http://' + selected_node + ':8000' + endpoint
         if selected_node:
             if result_table:
