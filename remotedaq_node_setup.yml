@@ -1,8 +1,9 @@
 ---
   - name: Installing RemoteDAQ Node
     hosts: all
+    become: true
     tasks:
-    
+
     # Install Docker
     - name: Install Required System Packages
       apt:
@@ -15,7 +16,7 @@
           - python3-pip
         state: latest
         update_cache: true
-    
+
     - name: Add Docker GPG apt Key
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
@@ -41,15 +42,14 @@
           - docker
           - PyYAML
 
-    # Copy .env-node File from Server to .env File in Node
-    
-    # Copy Project Files
-    - name: Copy Project Files to tmp Directory
-      copy:
-        src: .
-        dest: /tmp/RemoteDAQ
+    # Create .env File
+    - name: Generate .env File from Template
+      template:
+        src: .env.j2
+        dest: /home/{{ lookup('env', 'USER') }}/RemoteDAQ/.env
+        state: present
 
     # Deploy RemoteDAQ Node
     - name: Deploy Container
       docker_compose:
-        project_src: /tmp/RemoteDAQ
+        project_src: /home/{{ lookup('env', 'USER') }}/RemoteDAQ
