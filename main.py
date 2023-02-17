@@ -2,7 +2,7 @@ import flet as ft
 import aiohttp
 import json
 import asyncio
-from os import getenv
+from os import getenv, makedirs
 from dotenv import load_dotenv
 from subprocess import run
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -86,7 +86,7 @@ def main(page: ft.Page):
     page.title = 'RemoteDAQ Dashboard'
     nav = ['/', '/status', '/about']
     
-    # Load Variables
+    '''Load Variables'''
     load_dotenv()
     zt_id = str(getenv('ZT_ID'))
     zt_net_id = str(getenv('ZT_NET_ID'))
@@ -156,6 +156,7 @@ def main(page: ft.Page):
     def add_node(e):
         node_id = ft.TextField(label='Node ID')
         node_name = ft.TextField(label='Node Name')
+        ssh_user = ft.TextField(label='SSH Username')
         ssh_pass = ft.TextField(label='SSH Password', password=True, can_reveal_password=True)
         
         def execute(e):
@@ -163,13 +164,17 @@ def main(page: ft.Page):
             headers = {'Authorization' : 'Bearer ' + zt_token}
             auth_result = asyncio.run(api_request(zt_url, payload={'name': node_name.value, 'config': {'authorized': True}}, headers=headers))
             if auth_result['config']['authorized']:
+                try:
+                    makedirs('~/.ssh')
+                except FileExistsError:
+                    pass
                 ip_result = asyncio.run(api_request(zt_url, headers=headers))
                 node_ip = ip_result['config']['ipAssignments'][0]
                 # remote_command = run(['ansible-playbook', 'remotedaq_node_setup.yml'], capture_output=True)
-                remote_command = run(['ansible', 'all', '-i', str(node_ip) + ',', '-m', 'ping', '-u', 'unknown', '-k'], capture_output=True, input=str(ssh_pass))
+                remote_command = run(['ansible', 'all', '-i', str(node_ip) + ',', '-m', 'ping', '-u', 'unknown', '-k'], capture_output=True, input=str(ssh_pass.value), text=True)
                 # remote_command = run(['ssh', 'unknown@' + str(node_ip), 'echo', 'PING'], capture_output=True)
                 with open('ansible-output.log', 'w') as output:
-                    output.write(remote_command.stdout.decode())
+                    output.write(remote_command.stdout)
 
         apply_button = ft.FilledButton('Apply', on_click=execute)
         
@@ -178,6 +183,7 @@ def main(page: ft.Page):
                 [
                     node_id,
                     node_name,
+                    ssh_user,
                     ssh_pass
                 ],
                 height=200
