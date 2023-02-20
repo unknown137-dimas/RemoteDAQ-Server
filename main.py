@@ -29,12 +29,20 @@ async def api_request(url, payload={}, headers={}) -> dict:
         return {'success':False, 'data':['Unexpected error, Error message: ' + str(e)]}
 
 '''SSH Function'''
-def ssh_client(host, username, password, command, port=22, ):
+def ssh_client(host, username, password, command='', port=22, file=''):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(host, port, username, password)
-    stdin, stdout, stderr = ssh.exec_command(command)
-    return stdout.readlines()
+    if file:
+        try:
+            with scp.SCPClient(ssh.get_transport()) as scp_client:
+                scp_client.put(file, file)
+        except Exception as e:
+            return e
+        return 'Success'
+    elif command:
+        stdin, stdout, stderr = ssh.exec_command(command)
+        return stdout.readlines()
 
 '''Card Class'''
 class card(ft.UserControl):
@@ -186,7 +194,7 @@ def main(page: ft.Page):
                            )
                 
                 with open('node_log.log', 'w') as log:
-                    log.writelines(result)
+                    log.write(str(result))
 
         apply_button = ft.FilledButton('Apply', on_click=execute)
         
