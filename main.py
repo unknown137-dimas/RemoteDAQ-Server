@@ -2,10 +2,11 @@ import flet as ft
 import aiohttp
 import json
 import asyncio
-from os import getenv, makedirs
+from os import getenv
 from dotenv import load_dotenv
-from subprocess import run
 from apscheduler.schedulers.background import BackgroundScheduler
+import paramiko
+import scp
 
 '''API Requests Function'''
 async def api_request(url, payload={}, headers={}) -> dict:
@@ -24,7 +25,17 @@ async def api_request(url, payload={}, headers={}) -> dict:
         return {'success':False, 'data':['Connection refused, check connection']}
     except aiohttp.ContentTypeError:
         return {'success':False, 'data':['Invalid token or network ID, please check again']}
-    
+    except Exception as e:
+        return {'success':False, 'data':['Unexpected error, Error message: ' + str(e)]}
+
+'''SSH Function'''
+def ssh_client(host, username, password, command, port=22, ):
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(host, port, username, password)
+    stdin, stdout, stderr = ssh.exec_command(command)
+    return stdout.readlines()
+
 '''Card Class'''
 class card(ft.UserControl):
     def __init__(self, container_padding=15, card_elevation=5, obj=None, height=580, width=300):
@@ -123,6 +134,8 @@ def main(page: ft.Page):
                 result = asyncio.run(api_request(url, headers=headers))
             except TypeError:
                 pass
+            except Exception as e:
+                print(e)
         return result
     
     '''Update Node Dropdown Function'''
@@ -164,17 +177,16 @@ def main(page: ft.Page):
             headers = {'Authorization' : 'Bearer ' + zt_token}
             auth_result = asyncio.run(api_request(zt_url, payload={'name': node_name.value, 'config': {'authorized': True}}, headers=headers))
             if auth_result['config']['authorized']:
-                try:
-                    makedirs('~/.ssh')
-                except FileExistsError:
-                    pass
                 ip_result = asyncio.run(api_request(zt_url, headers=headers))
                 node_ip = ip_result['config']['ipAssignments'][0]
-                # remote_command = run(['ansible-playbook', 'remotedaq_node_setup.yml'], capture_output=True)
-                remote_command = run(['ansible', 'all', '-i', str(node_ip) + ',', '-m', 'ping', '-u', 'unknown', '-k'], capture_output=True, input=str(ssh_pass.value), text=True)
-                # remote_command = run(['ssh', 'unknown@' + str(node_ip), 'echo', 'PING'], capture_output=True)
-                with open('ansible-output.log', 'w') as output:
-                    output.write(remote_command.stdout)
+                result = ssh_client(host=node_ip,
+                           username=ssh_user,
+                           password=ssh_pass,
+                           command='ansible-playbook remotedaq_node_setup.yml'
+                           )
+                
+                with open('node_log.log', 'w') as log:
+                    log.writelines(result)
 
         apply_button = ft.FilledButton('Apply', on_click=execute)
         
