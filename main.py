@@ -188,8 +188,8 @@ def main(page: ft.Page):
                 ip_result = asyncio.run(api_request(zt_url, headers=headers))
                 node_ip = ip_result['config']['ipAssignments'][0]
                 result = ssh_client(host=node_ip,
-                           username=ssh_user,
-                           password=ssh_pass,
+                           username=ssh_user.value,
+                           password=ssh_pass.value,
                            command='ansible-playbook remotedaq_node_setup.yml'
                            )
                 
