@@ -206,7 +206,7 @@ def main(page: ft.Page):
                     ssh_user,
                     ssh_pass
                 ],
-                height=200
+                height=300
             ),
             actions=[apply_button]
         )
