@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 import paramiko
 import scp
+import remoteDAQ_Logger
+
+'''Logger Config'''
+my_logger = remoteDAQ_Logger.get_logger('RemoteDAQ_Server')
 
 '''API Requests Function'''
 async def api_request(url, payload={}, headers={}) -> dict:
@@ -22,10 +26,14 @@ async def api_request(url, payload={}, headers={}) -> dict:
                 async with session.get(url) as response:
                     return await response.json()
     except aiohttp.ClientConnectorError:
+        my_logger.error('### Failed to Connect ###')
         return {'success':False, 'data':['Connection refused, check connection']}
     except aiohttp.ContentTypeError:
+        my_logger.error('### Return Type Error ###')
         return {'success':False, 'data':['Invalid token or network ID, please check again']}
     except Exception as e:
+        my_logger.error('### Unexpected Error Occured ###')
+        my_logger.error(e)
         return {'success':False, 'data':['Unexpected error, Error message: ' + str(e)]}
 
 '''SSH Function'''
@@ -36,9 +44,10 @@ def ssh_client(host, username, password, command='', port=22, file=''):
     if file:
         try:
             with scp.SCPClient(ssh.get_transport()) as scp_client:
-                scp_client.put(file, file)
+                scp_client.put(file, 'RemoteDAQ/' + file)
         except Exception as e:
-            return e
+            my_logger.error('### Unexpected Error Occured ###')
+            my_logger.error(e)
         return 'Success'
     elif command:
         stdin, stdout, stderr = ssh.exec_command(command)
@@ -143,7 +152,8 @@ def main(page: ft.Page):
             except TypeError:
                 pass
             except Exception as e:
-                print(e)
+                my_logger.error('### Unexpected Error Occured ###')
+                my_logger.error(e)
         return result
     
     '''Update Node Dropdown Function'''
