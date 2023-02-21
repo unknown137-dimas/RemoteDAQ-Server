@@ -2,3 +2,5 @@
 .*-venv/*
 examples/*
 .env
+__pycache__/*
+logs/*
