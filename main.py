@@ -8,6 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import paramiko
 import scp
 import remoteDAQ_Logger
+import time
 
 '''Logger Config'''
 my_logger = remoteDAQ_Logger.get_logger('RemoteDAQ_Server')
@@ -37,10 +38,14 @@ async def api_request(url, payload={}, headers={}) -> dict:
         return {'success':False, 'data':['Unexpected error, Error message: ' + str(e)]}
 
 '''SSH Function'''
-def ssh_client(host, username, password, command='', port=22, file=''):
+def ssh_client(host, username, password, command='', file='', port=22):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(host, port, username, password)
+    try:
+        ssh.connect(host, port, username, password, timeout=3)
+    except Exception as e:
+        my_logger.error('### Unexpected Error Occured ###')
+        my_logger.error(e)
     if file:
         try:
             with scp.SCPClient(ssh.get_transport()) as scp_client:
@@ -48,10 +53,16 @@ def ssh_client(host, username, password, command='', port=22, file=''):
         except Exception as e:
             my_logger.error('### Unexpected Error Occured ###')
             my_logger.error(e)
-        return 'Success'
+        return 'OK'
     elif command:
         stdin, stdout, stderr = ssh.exec_command(command)
-        return stdout.readlines()
+        err_out = stderr.read().decode('utf-8')
+        if err_out:
+            with open('logs/node_setup.log', 'w') as node_log:
+                node_log.write(err_out)
+            return 'ERR'
+        if stdout.read().decode('utf-8'):
+            return 'OK'
 
 '''Card Class'''
 class card(ft.UserControl):
@@ -185,27 +196,42 @@ def main(page: ft.Page):
 
     '''Add Node Function'''
     def add_node(e):
+        pb = ft.ProgressBar(width=250, visible=False)
+        result_text = ft.Text('', weight=ft.FontWeight.BOLD)
         node_id = ft.TextField(label='Node ID')
         node_name = ft.TextField(label='Node Name')
         ssh_user = ft.TextField(label='SSH Username')
         ssh_pass = ft.TextField(label='SSH Password', password=True, can_reveal_password=True)
-        
+
         def execute(e):
+            result_text.value = 'Loading...'
+            result_text.color = ft.colors.BLACK
+            pb.visible = True
+            apply_button.disabled = True
             zt_url = 'https://api.zerotier.com/api/v1/network/' + zt_net_id + '/member/' + str(node_id.value)
             headers = {'Authorization' : 'Bearer ' + zt_token}
             auth_result = asyncio.run(api_request(zt_url, payload={'name': node_name.value, 'config': {'authorized': True}}, headers=headers))
             if auth_result['config']['authorized']:
                 ip_result = asyncio.run(api_request(zt_url, headers=headers))
                 node_ip = ip_result['config']['ipAssignments'][0]
-                result = ssh_client(host=node_ip,
-                           username=ssh_user.value,
-                           password=ssh_pass.value,
-                           command='ansible-playbook remotedaq_node_setup.yml'
-                           )
+                scp_result = ssh_client(host=node_ip,
+                            username=ssh_user.value,
+                            password=ssh_pass.value,
+                            file='.env'
+                            )
+                if scp_result:
+                    ssh_result = ssh_client(host=node_ip,
+                                username=ssh_user.value,
+                                password=ssh_pass.value,
+                                command='bash -c "cd RemoteDAQ; sudo ansible-playbook remotedaq_node_setup.yml"'
+                                )
+                    if ssh_result:
+                        result_text.value = ssh_result
+                        if ssh_result == 'ERR':
+                            result_text.color = ft.colors.RED
+                        pb.visible = False
+                        apply_button.disabled = False
                 
-                with open('node_log.log', 'w') as log:
-                    log.write(str(result))
-
         apply_button = ft.FilledButton('Apply', on_click=execute)
         
         dialog('Configure a New Node',
@@ -214,11 +240,12 @@ def main(page: ft.Page):
                     node_id,
                     node_name,
                     ssh_user,
-                    ssh_pass
+                    ssh_pass,
+                    pb,
                 ],
                 height=300
             ),
-            actions=[apply_button]
+            actions=[result_text, apply_button]
         )
         page.update()
 
