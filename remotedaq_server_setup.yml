@@ -125,15 +125,6 @@
           DB_ORG={{ db_org }}
           DB_BUCKET={{ db_bucket }}
 
-    # Generate SSH Credentials
-    - name: Generate SSH Credentials
-      openssh_keypair:
-        path: "./ssh-creds/id_rsa_remotedaq"
-        type: rsa
-        size: 4096
-        state: present
-        force: no
-
     # Start Docker Service
     - name: Starting Docker Service
       service:

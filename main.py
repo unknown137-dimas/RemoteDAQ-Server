@@ -8,7 +8,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import paramiko
 import scp
 import remoteDAQ_Logger
-import time
 
 '''Logger Config'''
 my_logger = remoteDAQ_Logger.get_logger('RemoteDAQ_Server')
