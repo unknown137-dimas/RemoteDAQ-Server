@@ -144,7 +144,7 @@ def main(page: ft.Page):
     ai_result_table =  result_table(8)
     di_result_table = result_table(8)
     doi_result_table = result_table(8)
-    node_result_table = result_table(col_headers=['Node Name', 'IP Address', 'Online'])
+    node_result_table = result_table(col_headers=['ID', 'Name', 'IP Address', 'Authorized', 'Online'])
 
     '''Dropdown Instance'''
     node_dropdown = ft.Dropdown(
@@ -185,8 +185,10 @@ def main(page: ft.Page):
                 node_result_table.rows.append(
                     ft.DataRow(
                         [
-                            ft.DataCell(ft.Text(n['name'])),
-                            ft.DataCell(ft.Text(node_ip)),
+                            ft.DataCell(ft.Text(n['nodeId'], selectable=True)),
+                            ft.DataCell(ft.Text(n['name'], selectable=True)),
+                            ft.DataCell(ft.Text(node_ip, selectable=True)),
+                            ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['config']['authorized'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
                             ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['online'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
                         ]
                     )
@@ -589,7 +591,7 @@ def main(page: ft.Page):
             expand=1,
             scroll=ft.ScrollMode.ADAPTIVE,
         ),
-        width=500
+        width=800
     )
 
     '''About Menu'''
