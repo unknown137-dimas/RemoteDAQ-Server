@@ -104,7 +104,7 @@
 
     # Get Server IP Address
     - name: Get Server IP Address
-      shell: hostname -I | cut -d ' ' -f 2
+      shell: ip route | awk '/zt/ {print $9}'
       register: db_ip
 
     # Create .env File
