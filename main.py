@@ -218,7 +218,7 @@ def main(page: ft.Page):
                 scp_result = ssh_client(host=node_ip,
                             username=ssh_user.value,
                             password=ssh_pass.value,
-                            file='.env'
+                            file='.env-node'
                             )
                 if scp_result:
                     ssh_result = ssh_client(host=node_ip,
