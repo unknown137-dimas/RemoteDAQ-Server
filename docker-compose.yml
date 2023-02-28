@@ -1,5 +1,12 @@
 version: '3'
 services:
+  tunnel_ui:
+    image: localtunnel
+    build:
+      dockerfile: Dockerfile.localtunnel
+    entrypoint: lt --port 2023 --subdomain 'rdaq'
+    restart: unless-stopped
+    network_mode: host
   ui:
     image: remotedaq_ui
     container_name: remotedaq_ui
