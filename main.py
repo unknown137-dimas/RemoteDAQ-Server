@@ -188,8 +188,14 @@ def main(page: ft.Page):
                             ft.DataCell(ft.Text(n['nodeId'], selectable=True)),
                             ft.DataCell(ft.Text(n['name'], selectable=True)),
                             ft.DataCell(ft.Text(node_ip, selectable=True)),
-                            ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['config']['authorized'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
-                            ft.DataCell(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN)) if n['online'] else ft.DataCell(ft.Icon(ft.icons.ERROR, color=ft.colors.RED)),
+                            ft.DataCell(
+                                ft.Container(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN), alignment=ft.alignment.center))
+                                if n['config']['authorized']
+                                else ft.DataCell(ft.Container(ft.Icon(ft.icons.ERROR, color=ft.colors.RED), alignment=ft.alignment.center)),
+                            ft.DataCell(
+                                ft.Container(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN), alignment=ft.alignment.center))
+                                if n['online']
+                                else ft.DataCell(ft.Container(ft.Icon(ft.icons.ERROR, color=ft.colors.RED), alignment=ft.alignment.center)),
                         ]
                     )
                 )
