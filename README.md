@@ -7,8 +7,12 @@ RemoteDAQ-Server is a server used to manage or control RemoteDAQ devices. Remote
 2. Create new network by click the 'Create A Network' button. Copy the Network ID.
 3. Create API Token [here](https://my.zerotier.com/account) and click the 'New Token' button. Copy and save the API Token.
 4. Change script permission:
-    ```chmod +x setup.sh```
+    ```bash
+    chmod +x setup.sh
+    ```
 5. Run command:
-    ```sudo ./setup.sh```
+    ```bash
+    sudo ./setup.sh
+    ```
 6. Fill the prompt accordingly.
 7. Wait until finished.
