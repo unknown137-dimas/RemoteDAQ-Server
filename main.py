@@ -114,6 +114,13 @@ class result_table(ft.DataTable):
         e.control.selected = not e.control.selected
         self.update()
 
+class snack_bar(ft.SnackBar):
+    def __init__(self, content, bgcolor=ft.colors.RED_900, *args, **kwargs):
+        super().__init__(content, bgcolor=ft.colors.RED_900, *args, **kwargs)
+        self.content = ft.Text(content)
+        self.open = True
+        self.bgcolor = bgcolor
+
 '''UI'''
 def main(page: ft.Page):
     '''Init'''
@@ -130,17 +137,6 @@ def main(page: ft.Page):
     zt_id = str(getenv('ZT_ID'))
     zt_net_id = str(getenv('ZT_NET_ID'))
     zt_token = str(getenv('ZT_TOKEN'))
-
-    '''Alert Dialog'''
-    def dialog(text, content=None, actions=None):
-        page.dialog = ft.AlertDialog(
-            title=ft.Text(text),
-            content=content,
-            actions=actions,
-            actions_alignment=ft.MainAxisAlignment.END,
-            modal=True
-        )
-        page.dialog.open = True
 
     '''Result Table Instance'''
     ai_result_table =  result_table(8)
@@ -186,15 +182,6 @@ def main(page: ft.Page):
                 node_dropdown.options.append(ft.dropdown.Option(node))
             page.update()
     
-    '''Check ZeroTier Node Status Function'''
-    def isOnline(timestamp):
-        lastSeen = datetime.datetime.fromtimestamp(timestamp/1000)
-        now = datetime.datetime.now()
-        delta = now - lastSeen
-        if delta.seconds < 60:
-            return True
-        return False
-
     '''Update Node Status Table Function'''
     def update_status_table():
         if page.route == '/status':
@@ -261,7 +248,8 @@ def main(page: ft.Page):
                 
         apply_button = ft.FilledButton('Apply', on_click=execute)
         
-        dialog('Configure a New Node',
+        page.dialog = ft.AlertDialog(
+            title=ft.Text('Configure a New Node'),
             content=ft.Column(
                 [
                     node_id,
@@ -272,7 +260,9 @@ def main(page: ft.Page):
                 ],
                 height=300
             ),
-            actions=[result_text, apply_button]
+            actions=[result_text, apply_button],
+            actions_alignment=ft.MainAxisAlignment.END,
+            open=True
         )
         page.update()
 
@@ -298,19 +288,19 @@ def main(page: ft.Page):
                 if daq_pins:
                     result = asyncio.run(api_request(url))
                     if result['success'] == True:
-                        dialog(parse_data(result, result_table))
+                        page.snack_bar = snack_bar(parse_data(result, result_table), bgcolor=ft.colors.GREEN_900)
                     else:
-                        dialog(result['data'][0])
+                        page.snack_bar = snack_bar(result['data'][0])
                 else:
-                    dialog('Please select one or more pin...')
+                    page.snack_bar = snack_bar('Please select one or more pin...')
             if daq_pin_values:
                 result = asyncio.run(api_request(url, payload={'value': daq_pin_values}))
                 if result['success'] == True:
-                    dialog('Success')
+                    page.snack_bar = snack_bar('Success', bgcolor=ft.colors.GREEN_900)
                 else:
-                    dialog(result['data'][0])
+                    page.snack_bar = snack_bar(result['data'][0])
         else:
-            dialog('Please select destination remoteDAQ node...')
+            page.snack_bar = snack_bar('Please select destination remoteDAQ node...')
         page.update()
 
     '''DAQ Selected Pins'''
