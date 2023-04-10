@@ -185,6 +185,15 @@ def main(page: ft.Page):
             for node in new_node_list:
                 node_dropdown.options.append(ft.dropdown.Option(node))
             page.update()
+    
+    '''Check ZeroTier Node Status Function'''
+    def isOnline(timestamp):
+        lastSeen = datetime.datetime.fromtimestamp(timestamp/1000)
+        now = datetime.datetime.now()
+        delta = now - lastSeen
+        if delta.seconds < 60:
+            return True
+        return False
 
     '''Update Node Status Table Function'''
     def update_status_table():
