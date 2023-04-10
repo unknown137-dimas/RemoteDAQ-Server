@@ -217,14 +217,20 @@ def main(page: ft.Page):
         ssh_user = ft.TextField(label='SSH Username')
         ssh_pass = ft.TextField(label='SSH Password', password=True, can_reveal_password=True)
 
+        def close_dialog(e):
+            dialog.open = False
+            page.update()
+
         def execute(e):
             result_text.value = "Loading..., Don't close this pop up"
             result_text.color = ft.colors.BLACK
             pb.visible = True
             apply_button.disabled = True
+
             zt_url = 'https://api.zerotier.com/api/v1/network/' + zt_net_id + '/member/' + str(node_id.value)
             headers = {'Authorization' : 'Bearer ' + zt_token}
             auth_result = asyncio.run(api_request(zt_url, payload={'name': node_name.value, 'config': {'authorized': True}}, headers=headers))
+            
             if auth_result['config']['authorized']:
                 ip_result = asyncio.run(api_request(zt_url, headers=headers))
                 node_ip = ip_result['config']['ipAssignments'][0]
@@ -246,9 +252,10 @@ def main(page: ft.Page):
                         pb.visible = False
                         apply_button.disabled = False
                 
+        cancel_button = ft.TextButton('Cancel', on_click=close_dialog)
         apply_button = ft.FilledButton('Apply', on_click=execute)
         
-        page.dialog = ft.AlertDialog(
+        dialog = ft.AlertDialog(
             title=ft.Text('Configure a New Node'),
             content=ft.Column(
                 [
@@ -260,10 +267,12 @@ def main(page: ft.Page):
                 ],
                 height=300
             ),
-            actions=[result_text, apply_button],
+            actions=[result_text, cancel_button, apply_button],
             actions_alignment=ft.MainAxisAlignment.END,
-            open=True
+            open=True,
+            modal=True
         )
+        page.dialog = dialog
         page.update()
 
     '''Parse Data Function'''
@@ -277,7 +286,13 @@ def main(page: ft.Page):
                 row.cells[1].content.value = ''
         output_table.update()
         return 'Success'
-
+    
+    '''Clear Data Function'''
+    def clear_data(output_table):
+        for row in output_table.rows:
+            row.cells[1].content.value = ''
+        output_table.update()
+    
     '''DAQ Function'''
     def daq(endpoint, result_table=None, daq_pin_values=None):
         selected_node = str(node_dropdown.value).split(' | ')[1] if node_dropdown.value else ''
@@ -293,6 +308,7 @@ def main(page: ft.Page):
                         page.snack_bar = snack_bar(result['data'][0])
                 else:
                     page.snack_bar = snack_bar('Please select one or more pin...')
+                    clear_data(result_table)
             if daq_pin_values:
                 result = asyncio.run(api_request(url, payload={'value': daq_pin_values}))
                 if result['success'] == True:
@@ -301,6 +317,7 @@ def main(page: ft.Page):
                     page.snack_bar = snack_bar(result['data'][0])
         else:
             page.snack_bar = snack_bar('Please select destination remoteDAQ node...')
+            clear_data(result_table)
         page.update()
 
     '''DAQ Selected Pins'''
@@ -498,16 +515,13 @@ def main(page: ft.Page):
                             expand=1,
                             content=ft.Row(
                                 [
+                                    ft.TextButton(
+                                        'Reset All Pins',
+                                        on_click=ao_pins_reset_clicked,
+                                    ),
                                     ft.FilledButton(
                                         'Set Analog Data',
                                         on_click=lambda e: daq(ao_endpoint, daq_pin_values=output_pins(e)),
-                                    ),
-                                    ft.ElevatedButton(
-                                        'Reset All Pins',
-                                        on_click=ao_pins_reset_clicked,
-                                        style=ft.ButtonStyle(
-                                            bgcolor=ft.colors.SECONDARY_CONTAINER
-                                        )
                                     ),
                                 ]
                             )
@@ -542,18 +556,15 @@ def main(page: ft.Page):
                             expand=1,
                             content=ft.Row(
                                 [
+                                    ft.TextButton(
+                                        'Toggle All Pins',
+                                        on_click=do_pins_all_clicked,
+                                    ),
                                     ft.FilledButton(
                                         'Set Digital Data',
                                         on_click=lambda e: daq(do_endpoint, daq_pin_values=output_pins(e)),
                                         style=ft.ButtonStyle(
                                             bgcolor=ft.colors.SECONDARY_CONTAINER,
-                                        )
-                                    ),
-                                    ft.ElevatedButton(
-                                        'Toggle All Pins',
-                                        on_click=do_pins_all_clicked,
-                                        style=ft.ButtonStyle(
-                                            bgcolor=ft.colors.SECONDARY_CONTAINER
                                         )
                                     ),
                                 ]
@@ -742,7 +753,7 @@ def main(page: ft.Page):
     '''Loop Subroutine'''
     sched = BackgroundScheduler()
     sched.add_job(update_node_dropdown, 'interval', seconds=3)
-    sched.add_job(update_status_table, 'interval', seconds=3)
+    sched.add_job(update_status_table, 'interval', seconds=5)
     sched.start()
 
 if __name__ == '__main__':
