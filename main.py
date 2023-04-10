@@ -169,7 +169,7 @@ def main(page: ft.Page):
         lastSeen = datetime.datetime.fromtimestamp(timestamp/1000)
         now = datetime.datetime.now()
         delta = now - lastSeen
-        if delta.seconds < 60:
+        if delta.seconds < 90:
             return True
         return False
     
