@@ -1,6 +1,7 @@
 import flet as ft
 import aiohttp
 import json
+import datetime
 import asyncio
 from os import getenv
 from dotenv import load_dotenv
@@ -121,7 +122,7 @@ def main(page: ft.Page):
     theme.page_transitions.windows = ft.PageTransitionTheme.CUPERTINO
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
-    page.title = 'RemoteDAQ Dashboard'
+    page.title = 'Universal Remote Data Acquisition Dashboard'
     nav = ['/', '/status', '/about']
     
     '''Load Variables'''
@@ -137,6 +138,7 @@ def main(page: ft.Page):
             content=content,
             actions=actions,
             actions_alignment=ft.MainAxisAlignment.END,
+            modal=True
         )
         page.dialog.open = True
 
@@ -148,7 +150,7 @@ def main(page: ft.Page):
 
     '''Dropdown Instance'''
     node_dropdown = ft.Dropdown(
-        label='RemoteDAQ Node',
+        label='Universal Remote Data Acquisition Node',
     )
 
     '''Get Node List Function'''
@@ -166,10 +168,19 @@ def main(page: ft.Page):
                 my_logger.error(e)
         return result
     
+    '''Check ZeroTier Node Status Function'''
+    def isOnline(timestamp):
+        lastSeen = datetime.datetime.fromtimestamp(timestamp/1000)
+        now = datetime.datetime.now()
+        delta = now - lastSeen
+        if delta.seconds < 60:
+            return True
+        return False
+    
     '''Update Node Dropdown Function'''
     def update_node_dropdown():
         if page.route == '/':
-            new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != zt_id and r['online'] and r['config']['ipAssignments']]
+            new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != zt_id and isOnline(r['lastSeen']) and r['config']['ipAssignments']]
             node_dropdown.options.clear()
             for node in new_node_list:
                 node_dropdown.options.append(ft.dropdown.Option(node))
@@ -194,7 +205,7 @@ def main(page: ft.Page):
                                 else ft.DataCell(ft.Container(ft.Icon(ft.icons.ERROR, color=ft.colors.RED), alignment=ft.alignment.center)),
                             ft.DataCell(
                                 ft.Container(ft.Icon(ft.icons.CHECK_CIRCLE, color=ft.colors.GREEN), alignment=ft.alignment.center))
-                                if n['online']
+                                if isOnline(n['lastSeen'])
                                 else ft.DataCell(ft.Container(ft.Icon(ft.icons.ERROR, color=ft.colors.RED), alignment=ft.alignment.center)),
                         ]
                     )
@@ -211,7 +222,7 @@ def main(page: ft.Page):
         ssh_pass = ft.TextField(label='SSH Password', password=True, can_reveal_password=True)
 
         def execute(e):
-            result_text.value = 'Loading...'
+            result_text.value = "Loading..., Don't close this pop up"
             result_text.color = ft.colors.BLACK
             pb.visible = True
             apply_button.disabled = True
@@ -614,7 +625,7 @@ def main(page: ft.Page):
 
     '''AppBar Menu'''
     appbar = ft.AppBar(
-        title=ft.Text("RemoteDAQ Dashboard"),
+        title=ft.Text("Universal Remote Data Acquisition Dashboard"),
         center_title=True,
         bgcolor=ft.colors.SURFACE_VARIANT,
     )
