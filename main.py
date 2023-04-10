@@ -114,12 +114,21 @@ class result_table(ft.DataTable):
         e.control.selected = not e.control.selected
         self.update()
 
-class snack_bar(ft.SnackBar):
-    def __init__(self, content, bgcolor=ft.colors.RED_900, *args, **kwargs):
-        super().__init__(content, bgcolor=ft.colors.RED_900, *args, **kwargs)
-        self.content = ft.Text(content)
-        self.open = True
-        self.bgcolor = bgcolor
+'''Banner Class'''
+class banner(ft.Banner):
+    def __init__(self, content, bgcolor=ft.colors.RED_600, *args, **kwargs):
+        super().__init__(content=ft.Text(content, color=ft.colors.WHITE),
+                         open=True,
+                         bgcolor=bgcolor,
+                         actions=[ft.TextButton('Dismiss',
+                                                style=ft.ButtonStyle(
+                                                    color=ft.colors.WHITE
+                                                ),
+                                                on_click=self.close_banner)],
+                         *args, **kwargs)
+    def close_banner(self, e):
+        self.open = False
+        self.update()
 
 '''UI'''
 def main(page: ft.Page):
@@ -303,20 +312,20 @@ def main(page: ft.Page):
                 if daq_pins:
                     result = asyncio.run(api_request(url))
                     if result['success'] == True:
-                        page.snack_bar = snack_bar(parse_data(result, result_table), bgcolor=ft.colors.GREEN_900)
+                        page.banner = banner(parse_data(result, result_table), bgcolor=ft.colors.GREEN_900)
                     else:
-                        page.snack_bar = snack_bar(result['data'][0])
+                        page.banner = banner(result['data'][0])
                 else:
-                    page.snack_bar = snack_bar('Please select one or more pin...')
+                    page.banner = banner('Please select one or more pin...')
                     clear_data(result_table)
             if daq_pin_values:
                 result = asyncio.run(api_request(url, payload={'value': daq_pin_values}))
                 if result['success'] == True:
-                    page.snack_bar = snack_bar('Success', bgcolor=ft.colors.GREEN_900)
+                    page.banner = banner('Success', bgcolor=ft.colors.GREEN_900)
                 else:
-                    page.snack_bar = snack_bar(result['data'][0])
+                    page.banner = banner(result['data'][0])
         else:
-            page.snack_bar = snack_bar('Please select destination remoteDAQ node...')
+            page.banner = banner('Please select destination remoteDAQ node...')
             clear_data(result_table)
         page.update()
 
