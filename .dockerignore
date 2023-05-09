@@ -1,0 +1,5 @@
+logs/*
+docker-compose.yml
+*Dockerfile*
+remotedaq_server_setup.yml
+setup.sh
