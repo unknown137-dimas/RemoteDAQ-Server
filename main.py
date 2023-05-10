@@ -34,7 +34,7 @@ async def api_request(url, payload={}, headers={}) -> dict:
         my_logger.error('### Return Type Error ###')
         return {'success':False, 'data':['Invalid token or network ID, please check again']}
     except Exception as e:
-        my_logger.error('### Unexpected Error Occured ###')
+        my_logger.error('### Unexpected RemoteDAQ API Call Error Occured ###')
         my_logger.error(e)
         return {'success':False, 'data':['Unexpected error, Error message: ' + str(e)]}
 
@@ -45,22 +45,22 @@ def ssh_client(host, username, password, command='', file='', port=22):
     try:
         ssh.connect(host, port, username, password, timeout=3)
     except Exception as e:
-        my_logger.error('### Unexpected Error Occured ###')
+        my_logger.error('### Unexpected SSH Error Occured ###')
         my_logger.error(e)
     if file:
         try:
             with scp.SCPClient(ssh.get_transport()) as scp_client:
                 scp_client.put(file, 'RemoteDAQ/' + file)
         except Exception as e:
-            my_logger.error('### Unexpected Error Occured ###')
+            my_logger.error('### Unexpected SCP Error Occured ###')
             my_logger.error(e)
         return 'OK'
     elif command:
         stdin, stdout, stderr = ssh.exec_command(command)
         err_out = stderr.read().decode('utf-8')
         if err_out:
-            with open('logs/node_setup.log', 'w') as node_log:
-                node_log.write(err_out)
+            my_logger.error('### Unexpected SSH Command Error Occured ###')
+            my_logger.error(err_out)
             return 'ERR'
         if stdout.read().decode('utf-8'):
             return 'OK'
@@ -93,9 +93,10 @@ class result_table(ft.DataTable):
         self.col_headers = col_headers
         self.row_headers = row_headers
         super().__init__(
-            border=ft.border.all(1, ft.colors.SECONDARY),
+            border=ft.border.all(1, ft.colors.BLACK),
             border_radius=10,
-            vertical_lines=ft.border.BorderSide(1, ft.colors.SECONDARY),
+            vertical_lines=ft.border.BorderSide(1, ft.colors.BLACK),
+            horizontal_lines=ft.border.BorderSide(1, ft.colors.BLACK38),
             show_checkbox_column=True,
             columns=[
                 ft.DataColumn(ft.Text(i)) for i in self.col_headers
@@ -117,7 +118,7 @@ class result_table(ft.DataTable):
 
 '''Banner Class'''
 class banner(ft.Banner):
-    def __init__(self, content, bgcolor=ft.colors.RED_600, *args, **kwargs):
+    def __init__(self, content, bgcolor=ft.colors.RED, *args, **kwargs):
         super().__init__(content=ft.Text(content, color=ft.colors.WHITE),
                          open=True,
                          bgcolor=bgcolor,
@@ -139,7 +140,7 @@ class banner(ft.Banner):
 def main(page: ft.Page):
     '''Init'''
     theme = ft.Theme()
-    theme.color_scheme_seed = 'green'
+    theme.color_scheme_seed = ft.colors.TEAL
     theme.page_transitions.windows = ft.PageTransitionTheme.CUPERTINO
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = theme
@@ -174,7 +175,7 @@ def main(page: ft.Page):
             except TypeError:
                 pass
             except Exception as e:
-                my_logger.error('### Unexpected Error Occured ###')
+                my_logger.error('### Unexpected API Call Error Occured ###')
                 my_logger.error(e)
         return result
     
@@ -230,15 +231,17 @@ def main(page: ft.Page):
         node_name = ft.TextField(label='Node Name')
         ssh_user = ft.TextField(label='SSH Username')
         ssh_pass = ft.TextField(label='SSH Password', password=True, can_reveal_password=True)
+        ssh_root_pass = ft.TextField(label='SSH Root Password', password=True, can_reveal_password=True)
 
         def close_dialog(e):
             dialog.open = False
             page.update()
 
         def execute(e):
-            result_text.value = "Loading..., Don't close this pop up"
+            result_text.value = "Loading..."
             result_text.color = ft.colors.BLACK
             pb.visible = True
+            cancel_button.disabled = True
             apply_button.disabled = True
 
             zt_url = 'https://api.zerotier.com/api/v1/network/' + zt_net_id + '/member/' + str(node_id.value)
@@ -255,15 +258,18 @@ def main(page: ft.Page):
                             )
                 if scp_result:
                     ssh_result = ssh_client(host=node_ip,
-                                username=ssh_user.value,
-                                password=ssh_pass.value,
-                                command='bash -c "cd RemoteDAQ; sudo ansible-playbook remotedaq_node_setup.yml"'
+                                username='root',
+                                password=ssh_root_pass.value,
+                                command=f'bash -c "cd /home/{ssh_user.value}/RemoteDAQ; ansible-playbook remotedaq_node_setup.yml"'
                                 )
                     if ssh_result:
                         result_text.value = ssh_result
                         if ssh_result == 'ERR':
                             result_text.color = ft.colors.RED
+                        if ssh_result == 'OK':
+                            result_text.color = ft.colors.GREEN
                         pb.visible = False
+                        cancel_button.disabled = False
                         apply_button.disabled = False
                 
         cancel_button = ft.TextButton('Cancel', on_click=close_dialog)
@@ -277,9 +283,10 @@ def main(page: ft.Page):
                     node_name,
                     ssh_user,
                     ssh_pass,
+                    ssh_root_pass,
                     pb,
                 ],
-                height=300
+                height=400
             ),
             actions=[result_text, cancel_button, apply_button],
             actions_alignment=ft.MainAxisAlignment.END,
@@ -317,7 +324,7 @@ def main(page: ft.Page):
                 if daq_pins:
                     result = asyncio.run(api_request(url))
                     if result['success'] == True:
-                        page.banner = banner(parse_data(result, result_table), bgcolor=ft.colors.GREEN_900)
+                        page.banner = banner(parse_data(result, result_table), bgcolor=ft.colors.GREEN)
                     else:
                         page.banner = banner(result['data'][0])
                 else:
@@ -326,7 +333,7 @@ def main(page: ft.Page):
             if daq_pin_values:
                 result = asyncio.run(api_request(url, payload={'value': daq_pin_values}))
                 if result['success'] == True:
-                    page.banner = banner('Success', bgcolor=ft.colors.GREEN_900)
+                    page.banner = banner('Success', bgcolor=ft.colors.GREEN)
                 else:
                     page.banner = banner(result['data'][0])
         else:
@@ -523,7 +530,8 @@ def main(page: ft.Page):
                                     ao_pin_0,
                                     ao_pin_1
                                 ]
-                            )
+                            ),
+                            padding=ft.padding.only(top=4)
                         ),
                         ft.Container(
                             expand=1,
