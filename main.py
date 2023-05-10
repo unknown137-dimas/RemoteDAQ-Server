@@ -9,6 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import paramiko
 import scp
 import remoteDAQ_Logger
+import threading
 
 '''Logger Config'''
 my_logger = remoteDAQ_Logger.get_logger('RemoteDAQ_Server')
@@ -126,6 +127,10 @@ class banner(ft.Banner):
                                                 ),
                                                 on_click=self.close_banner)],
                          *args, **kwargs)
+        
+        timer = threading.Timer(3, self.close_banner, args='d')
+        timer.start()
+
     def close_banner(self, e):
         self.open = False
         self.update()
