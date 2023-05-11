@@ -265,7 +265,7 @@ def main(page: ft.Page):
                     ssh_result = ssh_client(host=node_ip,
                                 username='root',
                                 password=ssh_root_pass.value,
-                                command=f'bash -c "cd /home/{ssh_user.value}/RemoteDAQ; ansible-playbook remotedaq_node_setup.yml"'
+                                command=f'bash -c "cd /home/{ssh_user.value}/RemoteDAQ; ansible-playbook remotedaq_node_setup.yml -i inventory"'
                                 )
                     if ssh_result:
                         result_text.value = ssh_result
