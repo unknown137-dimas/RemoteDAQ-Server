@@ -61,6 +61,5 @@ RemoteDAQ-Server is a server used to manage or control RemoteDAQ devices. Remote
     ```
 ## How to Access
 You can access the server from several ways:
-1. IP Address and port.
-2. Domain from Local Tunnel service `rdaq.loca.lt` and insert the server public IP as a password.
-3. Domain from Nginx Proxy Manager using DuckDNS service.
+1. Using IP address and port.
+2. Using domain from Nginx Proxy Manager with DuckDNS service.

@@ -1,14 +1,5 @@
 version: '3'
 services:
-  tunnel:
-    image: localtunnel
-    container_name: tunnel
-    build:
-      context: .
-      dockerfile: Dockerfile.localtunnel
-    entrypoint: lt --port 2023 --subdomain 'rdaq'
-    restart: unless-stopped
-    network_mode: host
   proxy:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: proxy
