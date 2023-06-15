@@ -1,14 +1,25 @@
 version: '3'
 services:
-  tunnel_ui:
+  tunnel:
     image: localtunnel
-    container_name: tunnel_ui
+    container_name: tunnel
     build:
       context: .
       dockerfile: Dockerfile.localtunnel
     entrypoint: lt --port 2023 --subdomain 'rdaq'
     restart: unless-stopped
     network_mode: host
+  proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: proxy
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./proxy/data:/data
+      - ./proxy/cert/letsencrypt:/etc/letsencrypt
+    restart: unless-stopped
   ui:
     image: remotedaq_ui
     container_name: remotedaq_ui
