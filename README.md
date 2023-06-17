@@ -30,7 +30,7 @@ RemoteDAQ-Server is a server used to manage or control RemoteDAQ devices. Remote
 3. Add subdomain of your choice.
 4. In `Current IP` Column, insert your server IP assigned by ZeroTier and click `Update IP`.
 ## Configure Proxy
-1. Go to web browser and visit your nginx proxy server UI using IP assigned by ZeroTier.
+1. Go to web browser and visit your Nginx Proxy Manager UI using IP assigned by ZeroTier.
     ```
     http://SERVER-IP:81
     ```
