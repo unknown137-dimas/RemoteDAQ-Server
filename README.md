@@ -59,6 +59,8 @@ RemoteDAQ-Server is a server used to manage or control RemoteDAQ devices. Remote
     Forward Hostname / IP   : remotedaq_db
     Forward Port            : 8086
     ```
+2. Go to `SSL` tab, click the SSL certificate.
+3. Select `Force SSL` and `HTTP/2 Support` options, and click `Save`.
 ## How to Access
 You can access the server from several ways:
 1. Using IP address and port.
