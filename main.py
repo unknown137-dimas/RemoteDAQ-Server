@@ -10,6 +10,7 @@ import paramiko
 import scp
 import remoteDAQ_Logger
 import threading
+from re import search
 
 '''Logger Config'''
 my_logger = remoteDAQ_Logger.get_logger('RemoteDAQ_Server')
@@ -177,6 +178,7 @@ def main(page: ft.Page):
             except Exception as e:
                 my_logger.error('### Unexpected API Call Error Occured ###')
                 my_logger.error(e)
+        result = [r for r in result if search('node', r['name'])]
         return result
     
     '''Check ZeroTier Node Status Function'''
@@ -191,7 +193,7 @@ def main(page: ft.Page):
     '''Update Node Dropdown Function'''
     def update_node_dropdown():
         if page.route == '/':
-            new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if r['nodeId'] != zt_id and isOnline(r['lastSeen']) and r['config']['ipAssignments']]
+            new_node_list = ['{} | {}'.format(r['name'], r['config']['ipAssignments'][0]) for r in get_node_list() if isOnline(r['lastSeen']) and r['config']['ipAssignments']]
             node_dropdown.options.clear()
             for node in new_node_list:
                 node_dropdown.options.append(ft.dropdown.Option(node))
@@ -200,7 +202,7 @@ def main(page: ft.Page):
     '''Update Node Status Table Function'''
     def update_status_table():
         if page.route == '/status':
-            new_node_list = [r for r in get_node_list() if r['nodeId'] != zt_id]
+            new_node_list = get_node_list()
             node_result_table.rows.clear()
             for n in new_node_list:
                 node_ip = n['config']['ipAssignments'][0] if n['config']['ipAssignments'] else ''
