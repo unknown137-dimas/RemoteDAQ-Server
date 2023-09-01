@@ -1,6 +1,10 @@
 # RemoteDAQ-Server
 RemoteDAQ-Server is a server used to manage or control RemoteDAQ devices. RemoteDAQ devices is a device that can control and manage Data Acquisition (DAQ) device.
 
+# Features
+1. Provision a new RemoteDAQ device
+2. Send and receive data to/from specific RemoteDAQ device.
+3. Monitor RemoteDAQ devices status.
 
 # How to Install
 1. Go to web browser and visit ZeroTier website [here](https://my.zerotier.com/login).
