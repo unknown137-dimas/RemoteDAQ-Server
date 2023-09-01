@@ -1,6 +1,6 @@
+examples
+__pycache__
+logs
 *.code-workspace
-.*-venv/*
-examples/*
+.venv
 .env
-__pycache__/*
-logs/*
